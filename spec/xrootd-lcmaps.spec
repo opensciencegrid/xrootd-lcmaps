@@ -1,7 +1,7 @@
 
 Name: xrootd-lcmaps
 Version: 0.0.1
-Release: 1
+Release: 4
 Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
@@ -37,6 +37,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libXrdLcmaps*
 
 %changelog
-* Tue Aug 24 2010 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.1-1
+* Thu Sep 17 2010 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.1-4
+- Recompile for new LCMAPS library.
+- Try and fix C++ vs C linker issues.
+- Link in all the required lcmaps libraries.
+
+* Wed Sep 16 2010 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.1-1
 - Initial integration of LCMAPS into Xrootd.
 

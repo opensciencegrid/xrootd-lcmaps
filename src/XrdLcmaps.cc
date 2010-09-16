@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*                                                                            */
-/*             X r d L c m a p s . c c                                        */
+/*             X r d L c m a p s . c                                          */
 /*                                                                            */
 /* (c) 2010. Brian Bockelman, UNL                                             */
 /*                                                                            */
@@ -23,6 +23,7 @@
 #include "XrdSys/XrdSysPthread.hh"
 #include "XrdOuc/XrdOucLock.hh"
 
+extern "C" {
 #include "lcmaps.h"
 #include "lcmaps_account.h"
 #include "lcmaps_return_account_from_pem.h"
@@ -31,11 +32,12 @@ XrdSysMutex mutex;
 
 int XrdSecgsiAuthzInit(const char *cfg);
 
+char * XrdSecgsiAuthzFun(const char *pem_string, int now);
+}
+
 //
 // Main function
 //
-extern "C"
-{
 char *XrdSecgsiAuthzFun(const char *pem_string, int now)
 {
    // Call LCMAPS from within a mutex in order to map our user.
@@ -79,7 +81,6 @@ char *XrdSecgsiAuthzFun(const char *pem_string, int now)
    return name;
 
 }
-}
 
 int XrdSecgsiAuthzUsage(int rc) {
    std::cerr << "Usage: --lcmapscfg <filename> [--osg]" << std::endl;
@@ -92,7 +93,7 @@ int XrdSecgsiAuthzUsage(int rc) {
 int XrdSecgsiAuthzInit(const char *cfg)
 {
    // Return 0 on success, -1 otherwise
-   int osg = 0;
+   int i, osg = 0;
    char * cfg_file;
    char * log_level = NULL;
 
@@ -100,17 +101,17 @@ int XrdSecgsiAuthzInit(const char *cfg)
    char * cfg_copy = strdup(cfg);
    int argc = 0;
    char * token = NULL;
-   while ((token = strsep(&cfg_copy, " ")) != NULL) {
+   while ((token = strsep(&cfg_copy, ",")) != NULL) {
       argc ++;
    }
    free(cfg_copy);
    argc = 0;
-   char **argv = (char **)calloc(sizeof(char *), argc+1);
+   char **argv = (char **)calloc(sizeof(char *), argc+2);
    cfg_copy = strdup(cfg);
    argv[0] = "XrdSecgsiAuthz";
-   while ((token = strsep(&cfg_copy, " ")) != NULL) {
+   while ((token = strsep(&cfg_copy, ",")) != NULL) {
       argc ++;
-      argv[argc] = token;
+      argv[argc] = strdup(token);
    }
    free(cfg_copy);
 
@@ -130,10 +131,13 @@ int XrdSecgsiAuthzInit(const char *cfg)
    while ((c = getopt_long(argc, argv, "c:l:", long_options, &option_index)) != -1) {
       switch(c) {
          case 'c':
-                  cfg_file = strdup(optarg);
+                  if (optarg != NULL)
+                     cfg_file = optarg;
                   break;
          case 'l':
-                  log_level = strdup(optarg);
+                  if (optarg != NULL)
+                     log_level = optarg;
+                  break;
          default:
                   XrdSecgsiAuthzUsage(-1);
       }
