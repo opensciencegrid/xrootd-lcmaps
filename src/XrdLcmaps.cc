@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <pwd.h>
+#include <dlfcn.h>
 
 #include "XrdSys/XrdSysPthread.hh"
 #include "XrdOuc/XrdOucLock.hh"
@@ -97,6 +98,12 @@ int XrdSecgsiAuthzInit(const char *cfg)
    char * cfg_file;
    char * log_level = NULL;
 
+   // Reload LCMAPS with 
+   //if (dlopen("liblcmaps.so", RTLD_NOLOAD | RTLD_GLOBAL) == NULL) {
+   //   std::cerr << "Unable to reload LCMAPS library!" << std::endl;
+      //return -1;
+   //}
+
    // Convert the input string into the typical argc/argv pair
    char * cfg_copy = strdup(cfg);
    int argc = 0;
@@ -142,6 +149,8 @@ int XrdSecgsiAuthzInit(const char *cfg)
                   XrdSecgsiAuthzUsage(-1);
       }
    }
+
+   setenv("LCMAPS_DB_FILE", cfg_file, 1);
 
    setenv("LCMAPS_VERIFY_TYPE", "uid_pgid", 1);
    if (log_level == NULL) {
