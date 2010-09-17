@@ -26,8 +26,6 @@
 
 extern "C" {
 #include "lcmaps.h"
-#include "lcmaps_account.h"
-#include "lcmaps_return_account_from_pem.h"
 
 XrdSysMutex mutex;
 
@@ -35,6 +33,8 @@ int XrdSecgsiAuthzInit(const char *cfg);
 
 char * XrdSecgsiAuthzFun(const char *pem_string, int now);
 }
+#define policy_count 1
+static char * policy_name = "xrootd_policy";
 
 //
 // Main function
@@ -44,7 +44,6 @@ char *XrdSecgsiAuthzFun(const char *pem_string, int now)
    // Call LCMAPS from within a mutex in order to map our user.
    // If now <= 0, initialize the LCMAPS modules.
    char * name = NULL;
-   lcmaps_account_info_t paccount_info;
 
    // Grab the global mutex.
    XrdOucLock lock(&mutex);
@@ -57,27 +56,42 @@ char *XrdSecgsiAuthzFun(const char *pem_string, int now)
       return (char *)0;
    }
 
-   /* LCMAPS mapping call */
-   if (lcmaps_account_info_init(&paccount_info) != 0) {
-	return NULL;
-   }
-
    /* -1 is the mapcounter */
    // Need char, not const char.  Don't know if LCMAPS changes it.
    char * pem_string_copy = strdup(pem_string);
-   if (lcmaps_return_account_from_pem(pem_string_copy, -1, &paccount_info) != 0) {
-      lcmaps_account_info_clean(&paccount_info);
-      return NULL;
-   }
+   uid_t uid = -1;
+   gid_t * pgid_list = NULL;
+   int npgid = 0;
+   gid_t * sgid_list = NULL;
+   int nsgid = 0;
+   char *poolindex;
 
-   struct passwd * pw = getpwuid(paccount_info.uid);
+   int rc = lcmaps_run_with_pem_and_return_account(
+        NULL,
+        pem_string_copy,
+        -1, // Map counter
+        NULL,
+        policy_count, // One policy
+        &policy_name, // Policy named "xrootd_policy"
+        &uid,
+        &pgid_list,
+        &npgid,
+        &sgid_list,
+        &nsgid,
+        &poolindex
+   );
+   free(pem_string_copy);
+
+   if (pgid_list)
+      free(pgid_list);
+   if (sgid_list)
+      free(sgid_list);
+
+   struct passwd * pw = getpwuid(uid);
    if (pw == NULL) {
       return NULL;
    }
    name = strdup(pw->pw_name);
-
-   /* Clean up lcmaps */
-   lcmaps_account_info_clean(&paccount_info);
 
    return name;
 

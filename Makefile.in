@@ -58,7 +58,7 @@ am__installdirs = "$(DESTDIR)$(libdir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libXrdLcmaps_la_LIBADD =
-am_libXrdLcmaps_la_OBJECTS = XrdLcmaps.lo
+am_libXrdLcmaps_la_OBJECTS = libXrdLcmaps_la-XrdLcmaps.lo
 libXrdLcmaps_la_OBJECTS = $(am_libXrdLcmaps_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -190,6 +190,7 @@ target_alias = @target_alias@
 lib_LTLIBRARIES = libXrdLcmaps.la
 INCLUDES = -I$(top_srcdir)/src
 libXrdLcmaps_la_SOURCES = src/XrdLcmaps.cc
+libXrdLcmaps_la_CXXFLAGS = -DLCMAPS_GSI_MODE=1
 libXrdLcmaps_la_LDFLAGS = -llcmaps -llcmaps_return_account_from_pem
 EXTRA_DIST = spec/xrootd-lcmaps.spec bootstrap
 all: all-am
@@ -265,7 +266,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/XrdLcmaps.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libXrdLcmaps_la-XrdLcmaps.Plo@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -288,12 +289,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
-XrdLcmaps.lo: src/XrdLcmaps.cc
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT XrdLcmaps.lo -MD -MP -MF "$(DEPDIR)/XrdLcmaps.Tpo" -c -o XrdLcmaps.lo `test -f 'src/XrdLcmaps.cc' || echo '$(srcdir)/'`src/XrdLcmaps.cc; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/XrdLcmaps.Tpo" "$(DEPDIR)/XrdLcmaps.Plo"; else rm -f "$(DEPDIR)/XrdLcmaps.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/XrdLcmaps.cc' object='XrdLcmaps.lo' libtool=yes @AMDEPBACKSLASH@
+libXrdLcmaps_la-XrdLcmaps.lo: src/XrdLcmaps.cc
+@am__fastdepCXX_TRUE@	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libXrdLcmaps_la_CXXFLAGS) $(CXXFLAGS) -MT libXrdLcmaps_la-XrdLcmaps.lo -MD -MP -MF "$(DEPDIR)/libXrdLcmaps_la-XrdLcmaps.Tpo" -c -o libXrdLcmaps_la-XrdLcmaps.lo `test -f 'src/XrdLcmaps.cc' || echo '$(srcdir)/'`src/XrdLcmaps.cc; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libXrdLcmaps_la-XrdLcmaps.Tpo" "$(DEPDIR)/libXrdLcmaps_la-XrdLcmaps.Plo"; else rm -f "$(DEPDIR)/libXrdLcmaps_la-XrdLcmaps.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/XrdLcmaps.cc' object='libXrdLcmaps_la-XrdLcmaps.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o XrdLcmaps.lo `test -f 'src/XrdLcmaps.cc' || echo '$(srcdir)/'`src/XrdLcmaps.cc
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libXrdLcmaps_la_CXXFLAGS) $(CXXFLAGS) -c -o libXrdLcmaps_la-XrdLcmaps.lo `test -f 'src/XrdLcmaps.cc' || echo '$(srcdir)/'`src/XrdLcmaps.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo
