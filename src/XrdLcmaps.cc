@@ -81,12 +81,14 @@ char *XrdSecgsiAuthzFun(const char *pem_string, int now)
         &poolindex
    );
    free(pem_string_copy);
-
+/*
    if (pgid_list)
       free(pgid_list);
    if (sgid_list)
       free(sgid_list);
-
+   if (poolindex)
+      free(poolindex);
+*/
    struct passwd * pw = getpwuid(uid);
    if (pw == NULL) {
       return NULL;

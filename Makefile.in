@@ -191,8 +191,8 @@ lib_LTLIBRARIES = libXrdLcmaps.la
 INCLUDES = -I$(top_srcdir)/src
 libXrdLcmaps_la_SOURCES = src/XrdLcmaps.cc
 libXrdLcmaps_la_CXXFLAGS = -DLCMAPS_GSI_MODE=1
-libXrdLcmaps_la_LDFLAGS = -llcmaps -llcmaps_return_account_from_pem
-EXTRA_DIST = spec/xrootd-lcmaps.spec bootstrap
+libXrdLcmaps_la_LDFLAGS = -llcmaps
+EXTRA_DIST = spec/xrootd-lcmaps.spec bootstrap configs/lcmaps-suexec.db
 all: all-am
 
 .SUFFIXES:
@@ -357,7 +357,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/spec
+	$(mkdir_p) $(distdir)/configs $(distdir)/spec
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
