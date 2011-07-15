@@ -24,41 +24,48 @@
 #include "XrdSys/XrdSysPthread.hh"
 #include "XrdOuc/XrdOucLock.hh"
 
+#include <XrdCrypto/XrdCryptosslAux.hh>
+#include <XrdCrypto/XrdCryptosslgsiAux.hh>
+#include <XrdCrypto/XrdCryptoX509.hh>
+#include <XrdCrypto/XrdCryptoX509Chain.hh>
+#include <XrdOuc/XrdOucString.hh>
+#include <XrdSec/XrdSecEntity.hh>
+#include <XrdSecgsi/XrdSecgsiTrace.hh>
+#include <XrdSut/XrdSutBucket.hh>
+
 extern "C" {
 #include "lcmaps.h"
 
 XrdSysMutex mutex;
 
 int XrdSecgsiAuthzInit(const char *cfg);
-
-char * XrdSecgsiAuthzFun(const char *pem_string, int now);
+int XrdSecgsiAuthzFun(XrdSecEntity &entity);
+int XrdSecgsiAuthzKey(XrdSecEntity &entity, char **key);
 }
 #define policy_count 1
 static char * policy_name = "xrootd_policy";
 
+static const int g_certificate_format = 1;
+
+#undef  PRINT
+#define PRINT(y)    std::cerr << y << "\n";
+
 //
 // Main function
 //
-char *XrdSecgsiAuthzFun(const char *pem_string, int now)
+int XrdSecgsiAuthzFun(XrdSecEntity &entity)
 {
    // Call LCMAPS from within a mutex in order to map our user.
-   // If now <= 0, initialize the LCMAPS modules.
-   char * name = NULL;
+
+   static const char* err_pfx = "ERROR in AuthzFun: ";
+   static const char* inf_pfx = "INFO in AuthzFun: ";
 
    // Grab the global mutex.
    XrdOucLock lock(&mutex);
 
-   // Init the relevant fields (only once)
-   if (now <= 0) {
-      if (XrdSecgsiAuthzInit(pem_string) != 0) {
-         return (char *)-1;
-      }
-      return (char *)0;
-   }
-
    /* -1 is the mapcounter */
    // Need char, not const char.  Don't know if LCMAPS changes it.
-   char * pem_string_copy = strdup(pem_string);
+   char * pem_string_copy = strdup(entity.creds);
    uid_t uid = -1;
    gid_t * pgid_list = NULL;
    int npgid = 0;
@@ -89,14 +96,100 @@ char *XrdSecgsiAuthzFun(const char *pem_string, int now)
    if (poolindex)
       free(poolindex);
 */
+   PRINT(inf_pfx << "Got uid " << uid);
    struct passwd * pw = getpwuid(uid);
    if (pw == NULL) {
-      return NULL;
+       // Fatal? If not, return 1
+      return -1;
    }
-   name = strdup(pw->pw_name);
 
-   return name;
+   if (entity.name) free(entity.name);
+   entity.name = strdup(pw->pw_name);
 
+   // Extract DN from the chain
+   XrdCryptoX509Chain *chain = 0;
+   if (!entity.creds) {
+      PRINT(err_pfx << "'entity.creds' must be defined");
+      return -1;
+   }
+   if (g_certificate_format == 0) {
+      chain = (XrdCryptoX509Chain *) entity.creds;
+   } else {
+      XrdOucString s((const char *) entity.creds);
+      XrdSutBucket *b = new XrdSutBucket(s);
+      chain = new XrdCryptoX509Chain();
+      if (XrdCryptosslX509ParseBucket(b, chain) <= 0) {
+         PRINT(err_pfx << "no certificates in chain");
+         delete b;
+         delete chain; chain = 0;
+         return -1;
+      }
+      if (chain->Reorder() < 0) {
+         PRINT(err_pfx << "problems re-ordering proxy chain");
+         delete b;
+         delete chain; chain = 0;
+         return -1;
+      }
+   }
+   // Point to the last certificate
+   XrdCryptoX509 *proxy = chain->End();
+   if (!proxy) {
+      PRINT(err_pfx << "chain is empty!");
+      return -1;
+   }
+   // Get the DN
+   const char *dn = proxy->Subject();
+   int ldn = 0;
+   if (!dn || (ldn = strlen(dn)) <= 0) {
+      PRINT(err_pfx << "proxy dn undefined!");
+      return -1;
+   }
+
+   // Store chopped version of DN into creds part.
+   // This should become available via --authzpxy.what=2
+   free(entity.creds);
+   char *prxidx = strstr(dn, "/CN=proxy");
+   if (prxidx) {
+      ldn = prxidx - dn;
+   }
+   entity.creds    = strndup(dn, ldn);
+   entity.credslen = ldn + 1;
+
+   PRINT(inf_pfx << "entity.name='"<< (entity.name ? entity.name : "null") << "'.");
+   PRINT(inf_pfx << "entity.host='"<< (entity.host ? entity.host : "null") << "'.");
+   PRINT(inf_pfx << "entity.creds='"<< (entity.creds ? entity.creds : "null") << "'.");
+   PRINT(inf_pfx << "entity.vorg='"<< (entity.vorg ? entity.vorg : "null") << "'.");
+   PRINT(inf_pfx << "entity.role='"<< (entity.role ? entity.role : "null") << "'.");
+   PRINT(inf_pfx << "entity.endorsements='"<< (entity.endorsements ? entity.endorsements : "null") << "'.");
+
+   // That means OK
+   return 0;
+}
+
+//
+// AuthzKey -- copy from xrootd/src/XrdSecgsi/XrdSecgsiAuthzFunDN.cc
+//
+int XrdSecgsiAuthzKey(XrdSecEntity &entity, char **key)
+{
+   // Implementation of XrdSecgsiAuthzKey extracting the information from the
+   // proxy chain in entity.creds
+
+   static const char* err_pfx = "ERROR in AuthzKey: ";
+   static const char* inf_pfx = "INFO in AuthzKey: ";
+
+   // Must have got something
+   if (!key) {
+      PRINT(err_pfx << "'key' must be defined");
+      return -1;
+   }
+
+   PRINT(inf_pfx << "Returning creds of len " << entity.credslen << " as key.");
+
+   // Set the key
+   *key = new char[entity.credslen + 1];
+   strcpy(*key, entity.creds);
+
+   return entity.credslen;
 }
 
 int XrdSecgsiAuthzUsage(int rc) {
@@ -147,7 +240,7 @@ int XrdSecgsiAuthzInit(const char *cfg)
    static struct option long_options[] = {
       {"osg", no_argument, &osg, 1},
       {"lcmapscfg", required_argument, NULL, 'c'},
-      {"loglevel", no_argument, NULL, 'l'},
+      {"loglevel", optional_argument, NULL, 'l'},
       {0, 0, 0, 0}
    };
    int option_index;
@@ -170,7 +263,7 @@ int XrdSecgsiAuthzInit(const char *cfg)
 
    setenv("LCMAPS_VERIFY_TYPE", "uid_pgid", 1);
    if (log_level == NULL) {
-      log_level;
+      setenv("LCMAPS_DEBUG_LEVEL", "0", 0);
    } else {
       setenv("LCMAPS_DEBUG_LEVEL", log_level, 0);
       free(log_level);
@@ -187,6 +280,6 @@ int XrdSecgsiAuthzInit(const char *cfg)
    }
 
    // Done
-   return 0;
+   // 1 means 'OK and I want the certificate in PEM base64 format'
+   return g_certificate_format;
 }
-
