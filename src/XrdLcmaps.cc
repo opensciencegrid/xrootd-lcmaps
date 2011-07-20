@@ -33,7 +33,8 @@
 #include <XrdSecgsi/XrdSecgsiTrace.hh>
 #include <XrdSut/XrdSutBucket.hh>
 
-extern "C" {
+extern "C"
+{
 #include "lcmaps.h"
 
 XrdSysMutex mutex;
@@ -42,6 +43,7 @@ int XrdSecgsiAuthzInit(const char *cfg);
 int XrdSecgsiAuthzFun(XrdSecEntity &entity);
 int XrdSecgsiAuthzKey(XrdSecEntity &entity, char **key);
 }
+
 #define policy_count 1
 static char * policy_name = "xrootd_policy";
 
@@ -65,13 +67,11 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
 
    /* -1 is the mapcounter */
    // Need char, not const char.  Don't know if LCMAPS changes it.
-   char * pem_string_copy = strdup(entity.creds);
-   uid_t uid = -1;
-   gid_t * pgid_list = NULL;
-   int npgid = 0;
-   gid_t * sgid_list = NULL;
-   int nsgid = 0;
-   char *poolindex;
+   char  *pem_string_copy = strdup(entity.creds);
+   char  *poolindex = NULL;
+   uid_t  uid = -1;
+   gid_t *pgid_list = NULL, *sgid_list = NULL;
+   int    npgid = 0, nsgid = 0;
 
    int rc = lcmaps_run_with_pem_and_return_account(
         NULL,
@@ -88,72 +88,27 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
         &poolindex
    );
    free(pem_string_copy);
-/*
+   /* // MT 2011-07-19 Why is this commented out?
    if (pgid_list)
       free(pgid_list);
    if (sgid_list)
       free(sgid_list);
    if (poolindex)
       free(poolindex);
-*/
+   */
    PRINT(inf_pfx << "Got uid " << uid);
    struct passwd * pw = getpwuid(uid);
    if (pw == NULL) {
-       // Fatal? If not, return 1
+       // Fatal. Non fatal return still allows login (go figure).
       return -1;
    }
 
-   if (entity.name) free(entity.name);
-   entity.name = strdup(pw->pw_name);
-
-   // Extract DN from the chain
-   XrdCryptoX509Chain *chain = 0;
-   if (!entity.creds) {
-      PRINT(err_pfx << "'entity.creds' must be defined");
-      return -1;
-   }
-   if (g_certificate_format == 0) {
-      chain = (XrdCryptoX509Chain *) entity.creds;
-   } else {
-      XrdOucString s((const char *) entity.creds);
-      XrdSutBucket *b = new XrdSutBucket(s);
-      chain = new XrdCryptoX509Chain();
-      if (XrdCryptosslX509ParseBucket(b, chain) <= 0) {
-         PRINT(err_pfx << "no certificates in chain");
-         delete b;
-         delete chain; chain = 0;
-         return -1;
-      }
-      if (chain->Reorder() < 0) {
-         PRINT(err_pfx << "problems re-ordering proxy chain");
-         delete b;
-         delete chain; chain = 0;
-         return -1;
-      }
-   }
-   // Point to the last certificate
-   XrdCryptoX509 *proxy = chain->End();
-   if (!proxy) {
-      PRINT(err_pfx << "chain is empty!");
-      return -1;
-   }
-   // Get the DN
-   const char *dn = proxy->Subject();
-   int ldn = 0;
-   if (!dn || (ldn = strlen(dn)) <= 0) {
-      PRINT(err_pfx << "proxy dn undefined!");
-      return -1;
-   }
-
-   // Store chopped version of DN into creds part.
-   // This should become available via --authzpxy.what=2
+   // DN is in 'name' (--gmapopt=10), move it over to creds ...
    free(entity.creds);
-   char *prxidx = strstr(dn, "/CN=proxy");
-   if (prxidx) {
-      ldn = prxidx - dn;
-   }
-   entity.creds    = strndup(dn, ldn);
-   entity.credslen = ldn + 1;
+   entity.creds    = entity.name;
+   entity.credslen = strlen(entity.name) + 1;
+   // ... and copy the local username into 'name'.
+   entity.name = strdup(pw->pw_name);
 
    PRINT(inf_pfx << "entity.name='"<< (entity.name ? entity.name : "null") << "'.");
    PRINT(inf_pfx << "entity.host='"<< (entity.host ? entity.host : "null") << "'.");
@@ -179,20 +134,38 @@ int XrdSecgsiAuthzKey(XrdSecEntity &entity, char **key)
 
    // Must have got something
    if (!key) {
-      PRINT(err_pfx << "'key' must be defined");
+      PRINT(err_pfx << "'key' must be defined.");
+      return -1;
+   }
+   if (!entity.name) {
+      PRINT(err_pfx << "'entity.name' must be defined (-gmapopt=10).");
       return -1;
    }
 
-   PRINT(inf_pfx << "Returning creds of len " << entity.credslen << " as key.");
+   // PRINT(inf_pfx << "entity.name='"<< (entity.name ? entity.name : "null") << "'.");
+   // PRINT(inf_pfx << "entity.vorg='"<< (entity.vorg ? entity.vorg : "null") << "'.");
+   // PRINT(inf_pfx << "entity.role='"<< (entity.role ? entity.role : "null") << "'.");
+   // PRINT(inf_pfx << "entity.endorsements='"<< (entity.endorsements ? entity.endorsements : "null") << "'.");
 
-   // Set the key
-   *key = new char[entity.credslen + 1];
-   strcpy(*key, entity.creds);
+   // Return DN (in name) + endrosments as the key:
+   XrdOucString s(entity.name);
+   if (entity.endorsements) {
+     s += "::";
+     s += entity.endorsements;
+   }
+   *key = strdup(s.c_str());
+   PRINT(inf_pfx << "Returning '" << s << "' of length " << s.length() << " as key.");
+   return s.length() + 1;
 
-   return entity.credslen;
+   // To use the whole proxy as the key:
+   // *key = new char[entity.credslen + 1];
+   // strcpy(*key, entity.creds);
+   // PRINT(inf_pfx << "Returning creds of len " << entity.credslen << " as key.");
+   // return entity.credslen;
 }
 
-int XrdSecgsiAuthzUsage(int rc) {
+int XrdSecgsiAuthzUsage(int rc)
+{
    std::cerr << "Usage: --lcmapscfg <filename> [--osg]" << std::endl;
    return rc;
 }
