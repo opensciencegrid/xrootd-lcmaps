@@ -1,6 +1,6 @@
 
 AC_PREREQ(2.57)
-AC_INIT(xrootd-lcmaps,0.0.2,xrootd-demonstrator@opensciencegrid.org)
+AC_INIT(xrootd-lcmaps,0.0.3,xrootd-demonstrator@opensciencegrid.org)
 AC_CONFIG_SRCDIR([src/XrdLcmaps.cc])
 
 AC_PROG_CXX

@@ -1,7 +1,7 @@
 
 Name: xrootd-lcmaps
 Version: 0.0.2
-Release: 1
+Release: 6
 Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
@@ -9,8 +9,8 @@ License: BSD
 URL: svn://t2.unl.edu/brian/XrdLcmaps
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-BuildRequires: xrootd-devel >= 1.4.1 lcmaps
-Requires: xrootd >= 1.4.1 lcmaps
+BuildRequires: xrootd-devel >= 2:3.0.3 lcmaps globus-gssapi-gsi-devel
+Requires: xrootd-server >= 2:3.0.3 lcmaps lcmaps-plugins-basic lcmaps-plugins-scas-client lcmaps-plugins-verify-proxy
 
 %description
 %{summary}
@@ -41,6 +41,19 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Tue May 17 2011 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.2-6
+- Update RPM deps for CERN-based xrootd RPM.
+
+* Wed Mar 30 2011 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.2-5
+- Update Koji for 32-bit build.
+
+* Fri Dec 24 2010 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.2-4
+- Update sample config line based on xrootd 3.0.0 final plugin code.
+
+* Mon Sep 20 2010 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.2-3
+- Update dependency info based on Mock/Koji errors.
+- Added some forgotten plugin deps.
+
 * Fri Sep 17 2010 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.2-1
 - Add the sample LCMAPS configuration.
 - Updated to the new tarball.  Calls the LCMAPS library directly instead of via helpers.
