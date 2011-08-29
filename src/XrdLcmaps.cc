@@ -103,18 +103,17 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
       return -1;
    }
 
-   // DN is in 'name' (--gmapopt=10), move it over to creds ...
-   free(entity.creds);
-   entity.creds    = entity.name;
-   entity.credslen = strlen(entity.name) + 1;
+   // DN is in 'name' (--gmapopt=10), move it over to grps ...
+   free(entity.grps);
+   entity.grps = entity.name;
    // ... and copy the local username into 'name'.
    entity.name = strdup(pw->pw_name);
 
    PRINT(inf_pfx << "entity.name='"<< (entity.name ? entity.name : "null") << "'.");
    PRINT(inf_pfx << "entity.host='"<< (entity.host ? entity.host : "null") << "'.");
-   PRINT(inf_pfx << "entity.creds='"<< (entity.creds ? entity.creds : "null") << "'.");
    PRINT(inf_pfx << "entity.vorg='"<< (entity.vorg ? entity.vorg : "null") << "'.");
    PRINT(inf_pfx << "entity.role='"<< (entity.role ? entity.role : "null") << "'.");
+   PRINT(inf_pfx << "entity.grps='"<< (entity.grps ? entity.grps : "null") << "'.");
    PRINT(inf_pfx << "entity.endorsements='"<< (entity.endorsements ? entity.endorsements : "null") << "'.");
 
    // That means OK
