@@ -1,7 +1,7 @@
 
 Name: xrootd-lcmaps
-Version: 0.0.2
-Release: 6
+Version: 0.0.3
+Release: 1
 Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
@@ -41,6 +41,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Fri Sep 16 2011 Brian Bockelman <bbockelm@cse.unl.edu> - 0.0.3-1
+- Updated to match mapping callout found in Xrootd 3.1.
+
 * Tue May 17 2011 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.2-6
 - Update RPM deps for CERN-based xrootd RPM.
 
