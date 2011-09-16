@@ -13,10 +13,6 @@ BuildRequires: xrootd-libs-devel
 BuildRequires: lcmaps-interface
 BuildRequires: lcmaps
 Requires: xrootd-server >= 1:3.1
-Requires: lcmaps
-Requires: lcmaps-plugins-basic
-Requires: lcmaps-plugins-scas-client
-Requires: lcmaps-plugins-verify-proxy
 
 %description
 %{summary}
