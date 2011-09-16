@@ -9,8 +9,14 @@ License: BSD
 URL: svn://t2.unl.edu/brian/XrdLcmaps
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-BuildRequires: xrootd-devel >= 2:3.0.3 lcmaps globus-gssapi-gsi-devel
-Requires: xrootd-server >= 2:3.0.3 lcmaps lcmaps-plugins-basic lcmaps-plugins-scas-client lcmaps-plugins-verify-proxy
+BuildRequires: xrootd-libs-devel
+BuildRequires: lcmaps-interface
+BuildRequires: lcmaps
+Requires: xrootd-server >= 1:3.1
+Requires: lcmaps
+Requires: lcmaps-plugins-basic
+Requires: lcmaps-plugins-scas-client
+Requires: lcmaps-plugins-verify-proxy
 
 %description
 %{summary}
