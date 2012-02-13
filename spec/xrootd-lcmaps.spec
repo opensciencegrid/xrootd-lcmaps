@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 0.0.3
+Version: 0.0.4
 Release: 1
 Summary: LCMAPS plugin for xrootd
 
@@ -12,7 +12,7 @@ BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: xrootd-libs-devel
 BuildRequires: lcmaps-interface
 BuildRequires: lcmaps
-Requires: xrootd-server >= 1:3.1
+Requires: xrootd-server >= 1:3.2
 
 %description
 %{summary}
@@ -43,6 +43,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Mon Feb 13 2012 Brian Bockelman <bbockelm@cse.unl.edu> - 0.0.4-1
+- Various bugfixes from Matevz Tadel.
+
 * Fri Sep 16 2011 Brian Bockelman <bbockelm@cse.unl.edu> - 0.0.3-1
 - Updated to match mapping callout found in Xrootd 3.1.
 
