@@ -17,7 +17,16 @@ BuildRequires: lcmaps
 BuildRequires: cmake
 Requires: xrootd-server >= 1:3.2
 
+%package devel
+Summary: Development libraries for the Xrootd LCMAPS plugin
+Group: System Environment/Development
+
+License: BSD
+
 %description
+%{summary}
+
+%description devel
 %{summary}
 
 %prep
@@ -25,7 +34,7 @@ Requires: xrootd-server >= 1:3.2
 
 %build
 #cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
-%cmake .
+%cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
 make VERBOSE=1 %{?_smp_mflags}
 
 %install
@@ -37,8 +46,13 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%{_libdir}/libXrdLcmaps*
-%{_sysconfdir}/xrootd/lcmaps.cfg
+%{_libdir}/libXrdLcmaps.so.0
+%{_libdir}/libXrdLcmaps.so.0.0.1
+%config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
+
+%files devel
+%defattr(-,root,root,-)
+%{_libdir}/libXrdLcmaps.so
 
 %changelog
 * Mon Oct 22 2012 Brian Bockelman <bbockelm@cse.unl.edu> - 0.0.5-1
