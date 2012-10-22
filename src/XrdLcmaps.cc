@@ -22,11 +22,9 @@
 #include <dlfcn.h>
 
 #include "XrdSys/XrdSysPthread.hh"
-#include "XrdOuc/XrdOucLock.hh"
 
 #include <XrdOuc/XrdOucString.hh>
 #include <XrdSec/XrdSecEntity.hh>
-#include <XrdSecgsi/XrdSecgsiTrace.hh>
 
 extern "C"
 {
@@ -44,7 +42,6 @@ static char * policy_name = "xrootd_policy";
 
 static const int g_certificate_format = 1;
 
-#undef  PRINT
 #define PRINT(y)    std::cerr << y << "\n";
 
 //
@@ -54,11 +51,11 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
 {
    // Call LCMAPS from within a mutex in order to map our user.
 
-   static const char* err_pfx = "ERROR in AuthzFun: ";
-   static const char* inf_pfx = "INFO in AuthzFun: ";
+   static const char err_pfx[] = "ERROR in AuthzFun: ";
+   static const char inf_pfx[] = "INFO in AuthzFun: ";
 
    // Grab the global mutex.
-   XrdOucLock lock(&mutex);
+   XrdSysMutexHelper lock(&mutex);
 
    /* -1 is the mapcounter */
    // Need char, not const char.  Don't know if LCMAPS changes it.
@@ -82,7 +79,7 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
         &nsgid,
         &poolindex
    );
-   if (!rc) {
+   if (rc) {
       PRINT(err_pfx << "LCMAPS failed or denied mapping");
       return -1;
    }
@@ -176,65 +173,69 @@ int XrdSecgsiAuthzUsage(int rc)
 //
 int XrdSecgsiAuthzInit(const char *cfg)
 {
+   static const char err_pfx[] = "ERROR in XrdSecgsiAuthzInit: ";
+
    // Return 0 on success, -1 otherwise
    int osg = 0;
-   char *cfg_file  = 0;
+   char *cfg_file  = "/etc/xrootd/lcmaps.cfg";
    char *log_level = 0;
 
    // Reload LCMAPS with 
-   //if (dlopen("liblcmaps.so", RTLD_NOLOAD | RTLD_GLOBAL) == 0) {
-   //   std::cerr << "Unable to reload LCMAPS library!" << std::endl;
-      //return -1;
-   //}
+   if (dlopen("liblcmaps.so", RTLD_LAZY|RTLD_GLOBAL) == 0) {
+      PRINT(err_pfx << "Unable to reload LCMAPS library! dlopen error: " << dlerror());
+      return -1;
+   }
 
    // Convert the input string into the typical argc/argv pair
-   char * cfg_copy = strdup(cfg);
-   int argc = 0;
-   char * token = 0;
-   while ((token = strsep(&cfg_copy, ",")) != 0) {
-      argc++;
-   }
-   free(cfg_copy);
-   char **argv = (char **) calloc(sizeof(char *), argc + 1);
-   cfg_copy = strdup(cfg);
-   argc = 0;
-   argv[argc++] = "XrdSecgsiAuthz";
-   while ((token = strsep(&cfg_copy, ",")) != 0) {
-      argv[argc++] = strdup(token);
-   }
-   free(cfg_copy);
+   if (cfg) {
+      char * cfg_copy = strdup(cfg);
+      int argc = 0;
+      char * token = 0;
+      while ((token = strsep(&cfg_copy, ",")) != 0) {
+         argc++;
+      }
+      free(cfg_copy);
+      char **argv = (char **) calloc(sizeof(char *), argc + 1);
+      cfg_copy = strdup(cfg);
+      argc = 0;
+      argv[argc++] = "XrdSecgsiAuthz";
+      while ((token = strsep(&cfg_copy, ",")) != 0) {
+         argv[argc++] = strdup(token);
+      }
+      free(cfg_copy);
 
-   if (argc < 3) {
-      return XrdSecgsiAuthzUsage(-1);
-   }
+      if (argc < 3) {
+         return XrdSecgsiAuthzUsage(-1);
+      }
 
-   // Use getopt to parse the appropriate options
-   char c;
-   static struct option long_options[] = {
-      {"osg",       no_argument, &osg, 1},
-      {"lcmapscfg", required_argument, 0, 'c'},
-      {"loglevel",  required_argument, 0, 'l'},
-      {0, 0, 0, 0}
-   };
-   int option_index = 0;
-   while ((c = getopt_long(argc, argv, "c:l:", long_options, &option_index)) != -1) {
-      switch(c) {
-         case 0:
-                  // A flag was parsed ...
-                  break;
-         case 'c':
-                  if (optarg != 0)
-                     cfg_file = optarg;
-                  break;
-         case 'l':
-                  if (optarg != 0)
-                     log_level = optarg;
-                  break;
-         case '?':
-                  return XrdSecgsiAuthzUsage(-1);
-         default:
-                  std::cerr << "XrdLcmaps: unexpected return value from getopt_long: '" << c << "'.\n";
-                  return -1;
+      // Use getopt to parse the appropriate options
+      char c;
+      static struct option long_options[] = {
+         {"osg",       no_argument, &osg, 1},
+         {"lcmapscfg", required_argument, 0, 'c'},
+         {"loglevel",  required_argument, 0, 'l'},
+         {0, 0, 0, 0}
+      };
+      int option_index = 0;
+      while ((c = getopt_long(argc, argv, "c:l:", long_options, &option_index)) != -1) {
+         switch(c) {
+            case 0:
+                     // A flag was parsed ...
+                     break;
+            case 'c':
+                     if (optarg != 0)
+                        cfg_file = optarg;
+                     break;
+            case 'l':
+                     if (optarg != 0)
+                        log_level = optarg;
+                     break;
+            case '?':
+                     return XrdSecgsiAuthzUsage(-1);
+            default:
+                     PRINT(err_pfx << "XrdLcmaps: unexpected return value from getopt_long: '" << c << "'.");
+                     return -1;
+         }
       }
    }
 
@@ -242,7 +243,7 @@ int XrdSecgsiAuthzInit(const char *cfg)
 
    setenv("LCMAPS_VERIFY_TYPE", "uid_pgid", 1);
    if (log_level == 0) {
-      setenv("LCMAPS_DEBUG_LEVEL", "0", 0);
+      setenv("LCMAPS_DEBUG_LEVEL", "3", 0);
    } else {
       setenv("LCMAPS_DEBUG_LEVEL", log_level, 0);
       free(log_level);
@@ -254,7 +255,9 @@ int XrdSecgsiAuthzInit(const char *cfg)
    }
 */
 
-   if (lcmaps_init(0)) { // Sends the logs to syslog.
+   FILE *fp = fdopen(2, "w");
+   if (lcmaps_init_and_log(fp, 1)) {
+      PRINT(err_pfx << "Failed to initialize LCMAPS");
       return -1;
    }
 
