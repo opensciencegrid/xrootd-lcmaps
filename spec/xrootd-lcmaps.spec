@@ -6,8 +6,10 @@ Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
 License: BSD
-URL: svn://t2.unl.edu/brian/XrdLcmaps
-Source0: %{name}-%{version}.tar.gz
+URL: https://github.com/bbockelm/xrootd-lcmaps
+# Generated from:
+# git-archive master | gzip -7 > ~/rpmbuild/SOURCES/xrootd-lcmaps.tar.gz
+Source0: %{name}.tar.gz
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: xrootd-libs-devel
 BuildRequires: lcmaps-interface
@@ -19,18 +21,16 @@ Requires: xrootd-server >= 1:3.2
 %{summary}
 
 %prep
-%setup -q
+%setup -q -c -n %{name}-%{version}
 
 %build
-cmake .
-make
+#cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+%cmake .
+make VERBOSE=1 %{?_smp_mflags}
 
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
-
-mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/xrootd
-install -m 0644 configs/lcmaps-suexec.db $RPM_BUILD_ROOT/%{_sysconfdir}/xrootd/lcmaps.cfg
 
 %clean
 rm -rf $RPM_BUILD_ROOT
