@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 0.0.4
+Version: 0.0.5
 Release: 1
 Summary: LCMAPS plugin for xrootd
 
@@ -12,6 +12,7 @@ BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: xrootd-libs-devel
 BuildRequires: lcmaps-interface
 BuildRequires: lcmaps
+BuildRequires: cmake
 Requires: xrootd-server >= 1:3.2
 
 %description
@@ -21,7 +22,7 @@ Requires: xrootd-server >= 1:3.2
 %setup -q
 
 %build
-%configure --with-xrootd-incdir=/usr/include/xrootd --with-lcmaps-incdir=/usr/include/lcmaps
+cmake .
 make
 
 %install
@@ -30,9 +31,6 @@ make install DESTDIR=$RPM_BUILD_ROOT
 
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/xrootd
 install -m 0644 configs/lcmaps-suexec.db $RPM_BUILD_ROOT/%{_sysconfdir}/xrootd/lcmaps.cfg
-
-rm -rf $RPM_BUILD_ROOT/%{_libdir}/*.la
-rm -rf $RPM_BUILD_ROOT/%{_libdir}/*.a
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -43,6 +41,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Mon Oct 22 2012 Brian Bockelman <bbockelm@cse.unl.edu> - 0.0.5-1
+- Switch to cmake.
+
 * Mon Feb 13 2012 Brian Bockelman <bbockelm@cse.unl.edu> - 0.0.4-1
 - Various bugfixes from Matevz Tadel.
 

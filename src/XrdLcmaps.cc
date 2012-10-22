@@ -24,14 +24,9 @@
 #include "XrdSys/XrdSysPthread.hh"
 #include "XrdOuc/XrdOucLock.hh"
 
-#include <XrdCrypto/XrdCryptosslAux.hh>
-#include <XrdCrypto/XrdCryptosslgsiAux.hh>
-#include <XrdCrypto/XrdCryptoX509.hh>
-#include <XrdCrypto/XrdCryptoX509Chain.hh>
 #include <XrdOuc/XrdOucString.hh>
 #include <XrdSec/XrdSecEntity.hh>
 #include <XrdSecgsi/XrdSecgsiTrace.hh>
-#include <XrdSut/XrdSutBucket.hh>
 
 extern "C"
 {
@@ -87,6 +82,10 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
         &nsgid,
         &poolindex
    );
+   if (!rc) {
+      PRINT(err_pfx << "LCMAPS failed or denied mapping");
+      return -1;
+   }
    free(pem_string_copy);
    /* // MT 2011-07-19 Why is this commented out?
    if (pgid_list)
@@ -178,7 +177,7 @@ int XrdSecgsiAuthzUsage(int rc)
 int XrdSecgsiAuthzInit(const char *cfg)
 {
    // Return 0 on success, -1 otherwise
-   int i, osg = 0;
+   int osg = 0;
    char *cfg_file  = 0;
    char *log_level = 0;
 
