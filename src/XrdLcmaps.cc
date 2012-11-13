@@ -38,7 +38,8 @@ int XrdSecgsiAuthzKey(XrdSecEntity &entity, char **key);
 }
 
 #define policy_count 1
-static char * policy_name = "xrootd_policy";
+static const char policy_name [] = "xrootd_policy";
+static const char plugin_name [] = "XrdSecgsiAuthz";
 
 static const int g_certificate_format = 1;
 
@@ -65,13 +66,16 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
    gid_t *pgid_list = NULL, *sgid_list = NULL;
    int    npgid = 0, nsgid = 0;
 
+   // To manage const cast issues
+   char * policy_name_copy = strdup(policy_name);
+
    int rc = lcmaps_run_with_pem_and_return_account(
         NULL,
         pem_string_copy,
         -1, // Map counter
         NULL,
         policy_count, // One policy
-        &policy_name, // Policy named "xrootd_policy"
+        &policy_name_copy, // Policy named "xrootd_policy"
         &uid,
         &pgid_list,
         &npgid,
@@ -79,11 +83,14 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
         &nsgid,
         &poolindex
    );
+
+   free(policy_name_copy);
+   free(pem_string_copy);
+
    if (rc) {
       PRINT(err_pfx << "LCMAPS failed or denied mapping");
       return -1;
    }
-   free(pem_string_copy);
    /* // MT 2011-07-19 Why is this commented out?
    if (pgid_list)
       free(pgid_list);
@@ -177,7 +184,7 @@ int XrdSecgsiAuthzInit(const char *cfg)
 
    // Return 0 on success, -1 otherwise
    int osg = 0;
-   char *cfg_file  = "/etc/xrootd/lcmaps.cfg";
+   const char *cfg_file  = "/etc/xrootd/lcmaps.cfg";
    char *log_level = 0;
 
    // Reload LCMAPS with 
@@ -198,7 +205,7 @@ int XrdSecgsiAuthzInit(const char *cfg)
       char **argv = (char **) calloc(sizeof(char *), argc + 1);
       cfg_copy = strdup(cfg);
       argc = 0;
-      argv[argc++] = "XrdSecgsiAuthz";
+      argv[argc++] = strdup(plugin_name);
       while ((token = strsep(&cfg_copy, ",")) != 0) {
          argv[argc++] = strdup(token);
       }
@@ -237,6 +244,10 @@ int XrdSecgsiAuthzInit(const char *cfg)
                      return -1;
          }
       }
+      for (int i=0; i<argc+1; i++) {
+          free(argv[i]);
+      }
+      free(argv);
    }
 
    setenv("LCMAPS_DB_FILE", cfg_file, 1);

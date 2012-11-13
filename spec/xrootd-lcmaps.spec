@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 0.0.5
+Version: 0.0.6
 Release: 1
 Summary: LCMAPS plugin for xrootd
 
@@ -55,6 +55,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libXrdLcmaps.so
 
 %changelog
+* Mon Nov 12 2012 Brian Bockelman - 0.0.6-1
+- Fix SL6 compilation issues.
+
 * Mon Oct 22 2012 Brian Bockelman <bbockelm@cse.unl.edu> - 0.0.5-1
 - Switch to cmake.
 
