@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 0.0.6
+Version: 0.0.7
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -17,16 +17,7 @@ BuildRequires: lcmaps
 BuildRequires: cmake
 Requires: xrootd-server >= 1:3.2
 
-%package devel
-Summary: Development libraries for the Xrootd LCMAPS plugin
-Group: System Environment/Development
-
-License: BSD
-
 %description
-%{summary}
-
-%description devel
 %{summary}
 
 %prep
@@ -46,15 +37,17 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
+# We keep the .so here (and not in a -devel subpackage) because it is actually
+# a shared library.
+%{_libdir}/libXrdLcmaps.so
 %{_libdir}/libXrdLcmaps.so.0
 %{_libdir}/libXrdLcmaps.so.0.0.1
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
-%files devel
-%defattr(-,root,root,-)
-%{_libdir}/libXrdLcmaps.so
-
 %changelog
+* Mon Nov 19 2012 Brian Bockelman <bbockelm@cse.unl.edu> - 0.0.7-1
+- Fix config parsing issues.
+
 * Mon Nov 12 2012 Brian Bockelman - 0.0.6-1
 - Fix SL6 compilation issues.
 

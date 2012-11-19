@@ -181,10 +181,12 @@ int XrdSecgsiAuthzUsage(int rc)
 int XrdSecgsiAuthzInit(const char *cfg)
 {
    static const char err_pfx[] = "ERROR in XrdSecgsiAuthzInit: ";
+   static const char inf_pfx[] = "INFO in XrdSecgsiAuthzInit: ";
 
    // Return 0 on success, -1 otherwise
    int osg = 0;
-   const char *cfg_file  = "/etc/xrootd/lcmaps.cfg";
+   const char *cfg_file  = "/etc/lcmaps.db";
+   const char *policy_name = "xrootd_policy";
    char *log_level = 0;
 
    // Reload LCMAPS with 
@@ -193,10 +195,12 @@ int XrdSecgsiAuthzInit(const char *cfg)
       return -1;
    }
 
+   char **argv = NULL;
+   int argc = 0;
+
    // Convert the input string into the typical argc/argv pair
    if (cfg) {
       char * cfg_copy = strdup(cfg);
-      int argc = 0;
       char * token = 0;
       while ((token = strsep(&cfg_copy, ",")) != 0) {
          argc++;
@@ -221,22 +225,32 @@ int XrdSecgsiAuthzInit(const char *cfg)
          {"osg",       no_argument, &osg, 1},
          {"lcmapscfg", required_argument, 0, 'c'},
          {"loglevel",  required_argument, 0, 'l'},
+         {"policy",    required_argument, 0, 'p'},
          {0, 0, 0, 0}
       };
       int option_index = 0;
-      while ((c = getopt_long(argc, argv, "c:l:", long_options, &option_index)) != -1) {
+      while ((c = getopt_long(argc, argv, "c:l:p:", long_options, &option_index)) != -1) {
          switch(c) {
             case 0:
                      // A flag was parsed ...
                      break;
             case 'c':
-                     if (optarg != 0)
+                     if (optarg != 0) {
                         cfg_file = optarg;
+                        PRINT(inf_pfx << "XrdLcmaps: Setting LCMAPS config file to " << cfg_file << ".");
+                     }
                      break;
             case 'l':
-                     if (optarg != 0)
+                     if (optarg != 0) {
                         log_level = optarg;
+                        PRINT(inf_pfx << "XrdLcmaps: Setting LCMAPS log level to " << log_level << ".");
+                     }
                      break;
+            case 'p':
+                     if (optarg != 0) {
+                        policy_name = optarg;
+                        PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
+                     }
             case '?':
                      return XrdSecgsiAuthzUsage(-1);
             default:
@@ -244,20 +258,16 @@ int XrdSecgsiAuthzInit(const char *cfg)
                      return -1;
          }
       }
-      for (int i=0; i<argc+1; i++) {
-          free(argv[i]);
-      }
-      free(argv);
    }
 
    setenv("LCMAPS_DB_FILE", cfg_file, 1);
+   setenv("LCMAPS_POLICY_NAME", policy_name, 1);
 
    setenv("LCMAPS_VERIFY_TYPE", "uid_pgid", 1);
    if (log_level == 0) {
       setenv("LCMAPS_DEBUG_LEVEL", "3", 0);
    } else {
       setenv("LCMAPS_DEBUG_LEVEL", log_level, 0);
-      free(log_level);
    }
 
 /*  This function is not currently exposed out to the world.
@@ -270,6 +280,13 @@ int XrdSecgsiAuthzInit(const char *cfg)
    if (lcmaps_init_and_log(fp, 1)) {
       PRINT(err_pfx << "Failed to initialize LCMAPS");
       return -1;
+   }
+
+   if (argv != NULL) {
+      for (int i=0; i<argc+1; i++) {
+         free(argv[i]);
+      }
+      free(argv);
    }
 
    // Done
