@@ -26,9 +26,15 @@
 #include <XrdOuc/XrdOucString.hh>
 #include <XrdSec/XrdSecEntity.hh>
 
+#include "XrdVersion.hh"
+
+XrdVERSIONINFO(XrdSecgsiAuthzFun,secgsiauthz);
+XrdVERSIONINFO(XrdSecgsiAuthzKey,secgsiauthz);
+XrdVERSIONINFO(XrdSecgsiAuthzInit,secgsiauthz);
+
 extern "C"
 {
-#include "lcmaps.h"
+#include "lcmaps_basic.h"
 
 XrdSysMutex mutex;
 
@@ -184,8 +190,8 @@ int XrdSecgsiAuthzInit(const char *cfg)
 
    // Return 0 on success, -1 otherwise
    int osg = 0;
-   const char *cfg_file  = "/etc/xrootd/lcmaps.cfg";
-   char *log_level = 0;
+   std::string cfg_file  = "/etc/xrootd/lcmaps.cfg";
+   std::string log_level = "3";
 
    // Reload LCMAPS with 
    if (dlopen("liblcmaps.so", RTLD_LAZY|RTLD_GLOBAL) == 0) {
@@ -250,15 +256,9 @@ int XrdSecgsiAuthzInit(const char *cfg)
       free(argv);
    }
 
-   setenv("LCMAPS_DB_FILE", cfg_file, 1);
-
-   setenv("LCMAPS_VERIFY_TYPE", "uid_pgid", 1);
-   if (log_level == 0) {
-      setenv("LCMAPS_DEBUG_LEVEL", "3", 0);
-   } else {
-      setenv("LCMAPS_DEBUG_LEVEL", log_level, 0);
-      free(log_level);
-   }
+   setenv("LCMAPS_DB_FILE",     cfg_file.c_str(),  1);
+   setenv("LCMAPS_VERIFY_TYPE", "uid_pgid",        1);
+   setenv("LCMAPS_DEBUG_LEVEL", log_level.c_str(), 0);
 
 /*  This function is not currently exposed out to the world.
    if (osg != 0) {
