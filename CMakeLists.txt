@@ -31,7 +31,7 @@ install(
   ${CMAKE_SOURCE_DIR}/configs/lcmaps.cfg
   DESTINATION ${SYSCONF_INSTALL_DIR}/xrootd
   PERMISSIONS
-  OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+  OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
 
 install(
   TARGETS XrdLcmaps
@@ -40,7 +40,7 @@ install(
 set_target_properties(
   XrdLcmaps
   PROPERTIES
-  VERSION   "0.0.1"
+  VERSION   "0.0.2"
   SOVERSION "0"
   LINK_INTERFACE_LIBRARIES "" )
 

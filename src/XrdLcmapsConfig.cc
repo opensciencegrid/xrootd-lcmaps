@@ -1,10 +1,13 @@
 
 #include <dlfcn.h>
-#include <lcmaps.h>
 #include <string.h>
 #include <getopt.h>
 
 #include <iostream>
+
+extern "C" {
+#include <lcmaps.h>
+}
 
 static const char plugin_name [] = "XrdSecgsiAuthz";
 static const char default_db  [] = "/etc/lcmaps.db";

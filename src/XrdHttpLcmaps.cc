@@ -8,7 +8,9 @@
 #include <XrdSys/XrdSysPthread.hh>
 #include <XrdSec/XrdSecEntity.hh>
 
+extern "C" {
 #include "lcmaps.h"
+}
 
 #include "XrdLcmapsConfig.hh"
 
@@ -42,9 +44,23 @@ public:
         // Hence, we do not free this later.
         STACK_OF(X509) * peer_chain = SSL_get_peer_cert_chain(ssl);
 
+        // The refcount here is incremented.
+        X509 * peer_certificate = SSL_get_peer_certificate(ssl);
+
         // No remote client?  Add nothing to the entity, but do not
         // fail.
-        if (!peer_chain) {return 0;}
+        if (!peer_certificate) {return 0;}
+        if (!peer_chain)
+        {
+            X509_free(peer_certificate);
+            return 0;
+        }
+
+        STACK_OF(X509) * full_stack = sk_X509_new_null();
+        sk_X509_push(full_stack, peer_certificate);
+        for (int idx = 0; idx < sk_X509_num(peer_chain); idx++) {
+            sk_X509_push(full_stack, sk_X509_value(peer_chain, idx)); 
+        }
 
         // Grab the global mutex - lcmaps is not thread-safe.
         // TODO(bbockelm): Cache lookups
@@ -57,7 +73,7 @@ public:
         lcmaps_request_t request = NULL; // Typically, the RSL
 
         // To manage const cast issues
-        char * policy_name_copy = NULL;  // TODO(bbockelm): Does LCMAPS pick up the default
+        char * policy_name_copy = strdup(default_policy_name);
 
         int rc = lcmaps_run_with_stack_of_x509_and_return_account(
             peer_chain,
@@ -75,6 +91,9 @@ public:
         if (policy_name_copy) {
             free(policy_name_copy);
         }
+
+        sk_X509_free(full_stack);
+        X509_free(peer_certificate);
 
         if (pgid_list) {free(pgid_list);}
         if (sgid_list) {free(sgid_list);}
@@ -128,6 +147,9 @@ private:
     static XrdSysMutex m_mutex;
 
 };
+
+
+XrdSysMutex XrdHttpLcmaps::m_mutex;
 
 
 extern "C" XrdHttpSecXtractor *XrdHttpGetSecXtractor(XrdHttpSecXtractorArgs)
