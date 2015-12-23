@@ -76,7 +76,7 @@ public:
         char * policy_name_copy = strdup(default_policy_name);
 
         int rc = lcmaps_run_with_stack_of_x509_and_return_account(
-            peer_chain,
+            full_stack,
             -1, // mapcounter
             request,
             policy_count,
