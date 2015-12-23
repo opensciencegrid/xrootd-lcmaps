@@ -200,12 +200,10 @@ int XrdSecgsiAuthzInit(const char *cfg)
       return -1;
    }
 
-   char **argv = NULL;
-   int argc = 0;
-
    // Convert the input string into the typical argc/argv pair
    if (cfg) {
       char * cfg_copy = strdup(cfg);
+      int argc = 0;
       char * token = 0;
       while ((token = strsep(&cfg_copy, ",")) != 0) {
          argc++;
@@ -263,6 +261,10 @@ int XrdSecgsiAuthzInit(const char *cfg)
                      return -1;
          }
       }
+      for (int i=0; i<argc+1; i++) {
+          free(argv[i]);
+      }
+      free(argv);
    }
 
    setenv("LCMAPS_DB_FILE",     cfg_file.c_str(),  1);
@@ -279,13 +281,6 @@ int XrdSecgsiAuthzInit(const char *cfg)
    if (lcmaps_init_and_log(fp, 1)) {
       PRINT(err_pfx << "Failed to initialize LCMAPS");
       return -1;
-   }
-
-   if (argv != NULL) {
-      for (int i=0; i<argc+1; i++) {
-         free(argv[i]);
-      }
-      free(argv);
    }
 
    // Done
