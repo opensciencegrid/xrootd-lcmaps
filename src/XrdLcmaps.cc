@@ -28,9 +28,15 @@
 #include <XrdOuc/XrdOucString.hh>
 #include <XrdSec/XrdSecEntity.hh>
 
+#include "XrdVersion.hh"
+
+XrdVERSIONINFO(XrdSecgsiAuthzFun,secgsiauthz);
+XrdVERSIONINFO(XrdSecgsiAuthzKey,secgsiauthz);
+XrdVERSIONINFO(XrdSecgsiAuthzInit,secgsiauthz);
+
 extern "C"
 {
-#include "lcmaps.h"
+#include "lcmaps_basic.h"
 
 XrdSysMutex mutex;
 
