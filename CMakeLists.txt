@@ -18,16 +18,20 @@ endif()
 include_directories( "${PROJECT_SOURCE_DIR}" "${XROOTD_INCLUDES}"
 "${LCMAPS_INCLUDES}" )
 
-add_library(XrdLcmaps MODULE src/XrdLcmaps.cc)
+add_library(XrdLcmaps MODULE src/XrdLcmaps.cc src/XrdHttpLcmaps.cc src/XrdLcmapsConfig.cc)
 target_link_libraries(XrdLcmaps ${XROOTD_SECGSI} ${XROOTD_CRYPTOSSL}
 ${LCMAPS_LIB} ${DL_LIB})
+
+if (NOT DEFINED CMAKE_INSTALL_LIBDIR)
+  SET(CMAKE_INSTALL_LIBDIR "lib")
+endif()
 
 install(
   FILES
   ${CMAKE_SOURCE_DIR}/configs/lcmaps.cfg
   DESTINATION ${SYSCONF_INSTALL_DIR}/xrootd
   PERMISSIONS
-  OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+  OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
 
 install(
   TARGETS XrdLcmaps
@@ -36,7 +40,7 @@ install(
 set_target_properties(
   XrdLcmaps
   PROPERTIES
-  VERSION   "0.0.1"
+  VERSION   "0.0.2"
   SOVERSION "0"
   LINK_INTERFACE_LIBRARIES "" )
 
