@@ -49,7 +49,7 @@ int XrdSecgsiAuthzConfig(const char *cfg)
          argc++;
       }
       free(cfg_copy);
-      argv = (char **) calloc(sizeof(char *), argc + 1);
+      argv = (char **) calloc(sizeof(char *), argc + 2);
       cfg_copy = strdup(cfg);
       argc = 0;
       argv[argc++] = strdup(plugin_name);
