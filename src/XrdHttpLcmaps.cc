@@ -87,11 +87,6 @@ class XrdMappingCache
 {
 public:
 
-    XrdMappingCache()
-      : m_last_clean(monotonic_time())
-    {
-    }
-
 
     ~XrdMappingCache()
     {
@@ -151,13 +146,21 @@ public:
     }
 
 
-    static XrdMappingCache &GetInstance() {return m_cache;}
+    static XrdMappingCache &GetInstance()
+    {
+        return m_cache;
+    }
 
 private:
 
     // No copying...
     XrdMappingCache& operator=(XrdMappingCache const&);
     XrdMappingCache(XrdMappingCache const&);
+
+    XrdMappingCache()
+      : m_last_clean(monotonic_time())
+    {
+    }
 
     /**
      * MUST CALL LOCKED
@@ -186,7 +189,7 @@ private:
     static XrdMappingCache m_cache;
 };
 
-XrdMappingCache::XrdMappingCache m_cache;
+XrdMappingCache XrdMappingCache::m_cache;
 
 
 class XrdHttpLcmaps : public XrdHttpSecXtractor

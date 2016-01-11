@@ -1,6 +1,7 @@
 
 #include <string>
 #include <sstream>
+#include <iostream>
 
 #include <voms/voms_apic.h>
 
@@ -21,8 +22,11 @@ GetKey(X509 *cert, STACK_OF(X509*) chain)
     // Parse VOMS data and append that.
     struct vomsdata *voms_ptr = VOMS_Init(NULL, NULL);
     int errcode = 0;
-    if (VOMS_Retrieve(cert, chain, RECURSE_CHAIN, voms_ptr, &errcode))
+    if (!VOMS_Retrieve(cert, chain, RECURSE_CHAIN, voms_ptr, &errcode))
     {
+        char *errmsg = VOMS_ErrorMessage(voms_ptr, errcode, NULL, 0);
+        std::cerr << "VOMS failure (" << errcode << "): " << errmsg << std::endl;
+        free(errmsg);
         return key.str();
     }
 
@@ -36,11 +40,12 @@ GetKey(X509 *cert, STACK_OF(X509*) chain)
             struct data *it2 = it->std[idx2];
             if (!it2->group) {continue;}
             key << it2->group;
-            if (it2->role) {key << "Role=" << it2->role;}
+            if (it2->role) {key << "/Role=" << it2->role;}
             key << ",";
         }
         key << "::";
     }
+    VOMS_Destroy(voms_ptr);
     return key.str();
 }
 
