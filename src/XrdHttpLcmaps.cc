@@ -1,6 +1,8 @@
 
 #include <iostream>
+#include <map>
 
+#include <time.h>
 #include <openssl/ssl.h>
 
 #include <XrdHttp/XrdHttpSecXtractor.hh>
@@ -13,6 +15,7 @@ extern "C" {
 }
 
 #include "XrdLcmapsConfig.hh"
+#include "XrdLcmapsKey.hh"
 
 #define policy_count 1
 static const char default_db  [] = "/etc/lcmaps.db";
@@ -31,9 +34,165 @@ XrdVERSIONINFO(XrdHttpGetSecXtractor,"lcmaps");
 // Someday we'll actually hook into the Xrootd logging system...
 #define PRINT(y)    std::cerr << y << "\n";
 
+
+inline uint64_t monotonic_time() {
+  struct timespec tp;
+#ifdef CLOCK_MONOTONIC_COARSE
+  clock_gettime(CLOCK_MONOTONIC_COARSE, &tp);
+#else
+  clock_gettime(CLOCK_MONOTONIC, &tp);
+#endif
+  return tp.tv_sec + (tp.tv_nsec >= 500000000);
+}
+
+
+void
+CopyEntity(XrdSecEntity &out, XrdSecEntity const &in)
+{
+
+    if (in.name) { out.name = strdup(in.name); }
+    if (in.host) { out.host = strdup(in.host); }
+    if (in.vorg) { out.vorg = strdup(in.vorg); }
+    if (in.role) { out.role = strdup(in.role); }
+    if (in.grps) { out.grps = strdup(in.grps); }
+    if (in.creds && in.credslen > 0)
+    {
+        out.creds = strdup(in.creds);
+        out.credslen = in.credslen;
+    }
+    if (in.endorsements)
+    {
+        out.endorsements = strdup(in.endorsements);
+    }
+    if (in.moninfo) { out.moninfo = strdup(in.moninfo); }
+}
+
+
+void
+FreeEntity(XrdSecEntity *&ent)
+{
+    free(ent->name);
+    free(ent->host);
+    free(ent->vorg);
+    free(ent->role);
+    free(ent->grps);
+    free(ent->creds);
+    free(ent->endorsements);
+    free(ent->moninfo);
+    delete ent;
+}
+
+
+class XrdMappingCache
+{
+public:
+
+    XrdMappingCache()
+      : m_last_clean(monotonic_time())
+    {
+    }
+
+
+    ~XrdMappingCache()
+    {
+        for (KeyToEnt::iterator it = m_map.begin();
+            it != m_map.end();
+            it++)
+        {
+            FreeEntity(it->second.first);
+        }
+    }
+
+
+    /**
+     * Get the data associated with a particular key and store
+     * it into the entity object.
+     * If this returns false, then the key was not found.
+     */
+    bool get(std::string key, struct XrdSecEntity &entity)
+    {
+        time_t now = monotonic_time();
+        m_mutex.Lock();
+        if (now > m_last_clean + 100) {clean_tables();}
+        KeyToEnt::const_iterator iter = m_map.find(key);
+        m_mutex.UnLock();
+        if (iter == m_map.end()) {
+            return false;
+        }
+        CopyEntity(entity, *iter->second.first);
+        return true;
+    }
+
+
+    /**
+     * Put the entity data into the map for a given key.
+     * Makes a copy of the caller's data if the key was not already present
+     * This function is thread safe.
+     *
+     * If result is false, then the key was already in the map.
+     */
+    void try_put(std::string key, struct XrdSecEntity const &entity)
+    {
+        time_t now = monotonic_time();
+        m_mutex.Lock();
+        XrdSecEntity *new_ent = new XrdSecEntity();
+        std::pair<KeyToEnt::iterator, bool> ret = m_map.insert(std::make_pair(key, std::make_pair(new_ent, now)));
+        if (ret.second)
+        {
+            ValueType &value = ret.first->second;
+            XrdSecEntity *ent = value.first;
+            CopyEntity(*ent, entity);
+        }
+        else
+        {
+            delete new_ent;
+        }
+        m_mutex.UnLock();
+    }
+
+
+    static XrdMappingCache &GetInstance() {return m_cache;}
+
+private:
+
+    // No copying...
+    XrdMappingCache& operator=(XrdMappingCache const&);
+    XrdMappingCache(XrdMappingCache const&);
+
+    /**
+     * MUST CALL LOCKED
+     */
+    void clean_tables()
+    {
+        m_last_clean = monotonic_time();
+        time_t expiry = m_last_clean + 100;
+        KeyToEnt::iterator it = m_map.begin();
+        while (it != m_map.end()) {
+            if (it->second.second < expiry) {
+                FreeEntity(it->second.first);
+                m_map.erase(it++);
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    typedef std::pair<XrdSecEntity*, time_t> ValueType;
+    typedef std::map<std::string, ValueType> KeyToEnt;
+
+    XrdSysMutex m_mutex;
+    time_t m_last_clean;
+    KeyToEnt m_map;
+    static XrdMappingCache m_cache;
+};
+
+XrdMappingCache::XrdMappingCache m_cache;
+
+
 class XrdHttpLcmaps : public XrdHttpSecXtractor
 {
 public:
+
 
     virtual int GetSecData(XrdLink *, XrdSecEntity &entity, SSL *ssl)
     {
@@ -60,6 +219,16 @@ public:
         sk_X509_push(full_stack, peer_certificate);
         for (int idx = 0; idx < sk_X509_num(peer_chain); idx++) {
             sk_X509_push(full_stack, sk_X509_value(peer_chain, idx)); 
+        }
+
+        std::string key = GetKey(peer_certificate, peer_chain);
+        XrdMappingCache &mcache = XrdMappingCache::GetInstance();
+        PRINT(inf_pfx << "Lookup with key " << key);
+        if (mcache.get(key, entity)) {
+            PRINT(inf_pfx << "Using cached entity with username " << entity.name);
+            sk_X509_free(full_stack);
+            X509_free(peer_certificate);
+            return 0;
         }
 
         // Grab the global mutex - lcmaps is not thread-safe.
@@ -115,6 +284,8 @@ public:
         free(entity.moninfo);
         entity.moninfo = entity.name;
         entity.name = strdup(pw->pw_name);
+
+        mcache.try_put(key, entity);
 
         return 0;
     }

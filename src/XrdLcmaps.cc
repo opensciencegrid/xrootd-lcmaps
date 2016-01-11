@@ -13,6 +13,7 @@
 /* ************************************************************************** */
 
 #include "XrdLcmapsConfig.hh"
+#include "XrdLcmapsKey.hh"
 
 #include <iostream>
 #include <stdio.h>
@@ -42,7 +43,6 @@ XrdSysMutex mutex;
 
 int XrdSecgsiAuthzInit(const char *cfg);
 int XrdSecgsiAuthzFun(XrdSecEntity &entity);
-int XrdSecgsiAuthzKey(XrdSecEntity &entity, char **key);
 }
 
 #define policy_count 1
