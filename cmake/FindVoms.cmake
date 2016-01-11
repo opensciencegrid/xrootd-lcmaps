@@ -1,0 +1,20 @@
+
+FIND_PATH(VOMS_INCLUDES voms/voms_apic.h
+  HINTS
+  ${VOMS_DIR}
+  $ENV{VOMS_DIR}
+  /usr
+  PATH_SUFFIXES include
+)
+
+FIND_LIBRARY(VOMS_LIB vomsapi
+  HINTS
+  ${VOMS_DIR}
+  $ENV{VOMS_DIR}
+  /usr
+  PATH_SUFFIXES lib
+)
+
+INCLUDE(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Voms DEFAULT_MSG VOMS_LIB VOMS_INCLUDES)
+
