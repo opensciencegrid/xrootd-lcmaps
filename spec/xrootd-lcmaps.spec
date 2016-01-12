@@ -1,4 +1,3 @@
-
 Name: xrootd-lcmaps
 Version: 1.1.0
 Release: 1%{?dist}
@@ -9,9 +8,11 @@ License: BSD
 URL: https://github.com/bbockelm/xrootd-lcmaps
 # Generated from:
 # git-archive master | gzip -7 > ~/rpmbuild/SOURCES/xrootd-lcmaps.tar.gz
-Source0: %{name}.tar.gz
+Source0: %{name}-%{version}.tar.gz
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: xrootd-libs-devel
+BuildRequires: xrootd-server-libs >= 1:4.1.0
+BuildRequires: xrootd-server-devel >= 1:4.1.0
 BuildRequires: lcmaps-interface
 BuildRequires: lcmaps
 BuildRequires: cmake
@@ -22,11 +23,11 @@ Requires: xrootd-server >= 1:3.2
 %{summary}
 
 %prep
-%setup -q -c -n %{name}-%{version}
+%setup -q
 
 %build
-#cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
-%cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+
 make VERBOSE=1 %{?_smp_mflags}
 
 %install
@@ -42,7 +43,7 @@ rm -rf $RPM_BUILD_ROOT
 # a shared library.
 %{_libdir}/libXrdLcmaps.so
 %{_libdir}/libXrdLcmaps.so.0
-%{_libdir}/libXrdLcmaps.so.0.0.1
+%{_libdir}/libXrdLcmaps.so.0.0.2
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
