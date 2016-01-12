@@ -22,16 +22,11 @@ Requires: xrootd-server >= 1:3.2
 %{summary}
 
 %prep
-#%setup -q -c -n %{name}-%{version}
-%setup -q -c -n %{name}
+%setup -n %{name}-%{version}
 
 %build
-#cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
-%if 0%{?rhel} > 6
-%cmake -DCMAKE_INSTALL_LIBDIR:PATH=/usr/lib64 -DCMAKE_BUILD_TYPE=RelWithDebInfo .
-%else
-%cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
-%endif
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+
 make VERBOSE=1 %{?_smp_mflags}
 
 %install
