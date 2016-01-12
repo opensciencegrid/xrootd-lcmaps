@@ -22,10 +22,6 @@ add_library(XrdLcmaps MODULE src/XrdLcmaps.cc src/XrdHttpLcmaps.cc src/XrdLcmaps
 target_link_libraries(XrdLcmaps ${XROOTD_SECGSI} ${XROOTD_CRYPTOSSL}
 ${LCMAPS_LIB} ${DL_LIB})
 
-#if (NOT DEFINED CMAKE_INSTALL_LIBDIR)
-#  SET(CMAKE_INSTALL_LIBDIR "lib")
-#endif()
-
 if (NOT DEFINED LIB_INSTALL_DIR)
   SET(LIB_INSTALL_DIR "lib")
 endif()

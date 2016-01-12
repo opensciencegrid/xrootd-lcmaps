@@ -8,7 +8,7 @@ License: BSD
 URL: https://github.com/bbockelm/xrootd-lcmaps
 # Generated from:
 # git-archive master | gzip -7 > ~/rpmbuild/SOURCES/xrootd-lcmaps.tar.gz
-Source0: %{name}.tar.gz
+Source0: %{name}-%{version}.tar.gz
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: xrootd-libs-devel
 BuildRequires: xrootd-server-libs >= 1:4.1.0
@@ -22,10 +22,10 @@ Requires: xrootd-server >= 1:3.2
 %{summary}
 
 %prep
-%setup -n %{name}-%{version}
+%setup -q
 
 %build
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
 
 make VERBOSE=1 %{?_smp_mflags}
 
