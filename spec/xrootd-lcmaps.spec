@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.0.0
+Version: 1.1.0
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -46,6 +46,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Mon Jan 11 2016 Brian Bockelman <bbockelm@cse.unl.edu> - 1.1.0-1
+- Add caching support to HTTP.
+
 * Mon Jan 04 2016 Brian Bockelman <bbockelm@cse.unl.edu> - 1.0.0-1
 - Add support for a HTTP security extractor.
 - Mark as 1.0 release.
