@@ -6,6 +6,7 @@ set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
 
 find_package( Xrootd REQUIRED )
 find_package( Lcmaps REQUIRED )
+find_package( Voms   REQUIRED )
 
 if( CMAKE_COMPILER_IS_GNUCXX )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -DLCMAPS_GSI_MODE=1" )
@@ -15,12 +16,10 @@ if( CMAKE_COMPILER_IS_GNUCC )
   set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -DLCMAPS_GSI_MODE=1" )
 endif()
 
-include_directories( "${PROJECT_SOURCE_DIR}" "${XROOTD_INCLUDES}"
-"${LCMAPS_INCLUDES}" )
+include_directories( "${PROJECT_SOURCE_DIR}" "${XROOTD_INCLUDES}" "${LCMAPS_INCLUDES}" "${VOMS_INCLUDES}")
 
-add_library(XrdLcmaps MODULE src/XrdLcmaps.cc src/XrdHttpLcmaps.cc src/XrdLcmapsConfig.cc)
-target_link_libraries(XrdLcmaps ${XROOTD_SECGSI} ${XROOTD_CRYPTOSSL}
-${LCMAPS_LIB} ${DL_LIB})
+add_library(XrdLcmaps MODULE src/XrdLcmaps.cc src/XrdHttpLcmaps.cc src/XrdLcmapsConfig.cc src/XrdLcmapsKey.cc)
+target_link_libraries(XrdLcmaps ${XROOTD_SECGSI} ${XROOTD_CRYPTOSSL} ${LCMAPS_LIB} ${DL_LIB} ${VOMS_LIB})
 
 if (NOT DEFINED CMAKE_INSTALL_LIBDIR)
   SET(CMAKE_INSTALL_LIBDIR "lib")

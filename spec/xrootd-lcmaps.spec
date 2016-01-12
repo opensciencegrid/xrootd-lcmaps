@@ -15,6 +15,7 @@ BuildRequires: xrootd-libs-devel
 BuildRequires: lcmaps-interface
 BuildRequires: lcmaps
 BuildRequires: cmake
+BuildRequires: voms-devel
 Requires: xrootd-server >= 1:3.2
 
 %description
