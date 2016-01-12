@@ -26,6 +26,10 @@ if (NOT DEFINED CMAKE_INSTALL_LIBDIR)
   SET(CMAKE_INSTALL_LIBDIR "lib")
 endif()
 
+if (NOT DEFINED LIB_INSTALL_DIR)
+  SET(CMAKE_INSTALL_LIBDIR "lib64")
+endif()
+
 install(
   FILES
   ${CMAKE_SOURCE_DIR}/configs/lcmaps.cfg
