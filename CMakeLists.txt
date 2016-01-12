@@ -35,7 +35,7 @@ install(
 
 install(
   TARGETS XrdLcmaps
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} )
+  LIBRARY DESTINATION ${LIB_INSTALL_DIR} )
 
 set_target_properties(
   XrdLcmaps
