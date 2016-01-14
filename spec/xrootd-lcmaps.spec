@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.1.0
+Version: 1.2.0
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -46,6 +46,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Thu Jan 14 2016 Brian Bockelman <bbockelm@cse.unl.edu> - 1.2.0-1
+- Have VOMS attributes forward to the xrootd credential.
+
 * Mon Jan 11 2016 Brian Bockelman <bbockelm@cse.unl.edu> - 1.1.0-1
 - Add caching support to HTTP.
 
