@@ -47,24 +47,25 @@ inline uint64_t monotonic_time() {
 
 
 void
-CopyEntity(XrdSecEntity &out, XrdSecEntity const &in)
+UpdateEntity(XrdSecEntity &out, XrdSecEntity const &in)
 {
-
-    if (in.name) { out.name = strdup(in.name); }
-    if (in.host) { out.host = strdup(in.host); }
-    if (in.vorg) { out.vorg = strdup(in.vorg); }
-    if (in.role) { out.role = strdup(in.role); }
-    if (in.grps) { out.grps = strdup(in.grps); }
+    if (in.name) { free(out.name); out.name = strdup(in.name); }
+    if (in.host) { free(out.host); out.host = strdup(in.host); }
+    if (in.vorg) { free(out.vorg); out.vorg = strdup(in.vorg); }
+    if (in.role) { free(out.role); out.role = strdup(in.role); }
+    if (in.grps) { free(out.grps); out.grps = strdup(in.grps); }
     if (in.creds && in.credslen > 0)
     {
+        free(out.creds);
         out.creds = strdup(in.creds);
         out.credslen = in.credslen;
     }
     if (in.endorsements)
     {
+        free(out.endorsements);
         out.endorsements = strdup(in.endorsements);
     }
-    if (in.moninfo) { out.moninfo = strdup(in.moninfo); }
+    if (in.moninfo) { free(out.moninfo); out.moninfo = strdup(in.moninfo); }
 }
 
 
@@ -114,7 +115,7 @@ public:
         if (iter == m_map.end()) {
             return false;
         }
-        CopyEntity(entity, *iter->second.first);
+        UpdateEntity(entity, *iter->second.first);
         return true;
     }
 
@@ -136,7 +137,7 @@ public:
         {
             ValueType &value = ret.first->second;
             XrdSecEntity *ent = value.first;
-            CopyEntity(*ent, entity);
+            UpdateEntity(*ent, entity);
         }
         else
         {
@@ -224,7 +225,7 @@ public:
             sk_X509_push(full_stack, sk_X509_value(peer_chain, idx)); 
         }
 
-        std::string key = GetKey(peer_certificate, peer_chain);
+        std::string key = GetKey(peer_certificate, peer_chain, entity);
         XrdMappingCache &mcache = XrdMappingCache::GetInstance();
         PRINT(inf_pfx << "Lookup with key " << key);
         if (mcache.get(key, entity)) {
