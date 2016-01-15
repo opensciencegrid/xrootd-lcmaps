@@ -15,7 +15,7 @@
  * Build a hash key from the DN and VOMS info.
  */
 std::string
-GetKey(X509 *cert, STACK_OF(X509*) chain, XrdSecEntity &ent)
+GetKey(X509 *cert, STACK_OF(X509) *chain, XrdSecEntity &ent)
 {
     std::stringstream key;
     std::stringstream grps;
