@@ -10,6 +10,8 @@
 #include <XrdSys/XrdSysPthread.hh>
 #include <XrdSec/XrdSecEntity.hh>
 
+#include "GlobusSupport.hh"
+
 extern "C" {
 #include "lcmaps.h"
 }
@@ -226,6 +228,16 @@ public:
         }
 
         std::string key = GetKey(peer_certificate, peer_chain, entity);
+        if (!key.size()) {  // Empty key indicates failure.
+            sk_X509_free(full_stack);
+            X509_free(peer_certificate);
+            free(entity.moninfo);
+            free(entity.name);
+            PRINT(inf_pfx << "Key lookup failed.");
+            entity.moninfo = strdup("Failed DN verification");
+            entity.name = NULL;
+            return 0;
+        }
         XrdMappingCache &mcache = XrdMappingCache::GetInstance();
         PRINT(inf_pfx << "Lookup with key " << key);
         if (mcache.get(key, entity)) {
@@ -329,6 +341,8 @@ XrdSysMutex XrdHttpLcmaps::m_mutex;
 
 extern "C" XrdHttpSecXtractor *XrdHttpGetSecXtractor(XrdHttpSecXtractorArgs)
 {
+    if (!globus_activate()) {return NULL;}
+
     XrdHttpLcmaps *extractor = new XrdHttpLcmaps(eDest);
     if (extractor->Config(parms)) {
         delete extractor;

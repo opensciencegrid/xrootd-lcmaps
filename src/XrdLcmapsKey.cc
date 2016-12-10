@@ -9,6 +9,7 @@
 
 #include <openssl/crypto.h>
 
+#include "GlobusSupport.hh"
 #include "XrdLcmapsKey.hh"
 
 /**
@@ -21,7 +22,13 @@ GetKey(X509 *cert, STACK_OF(X509) *chain, XrdSecEntity &ent)
     std::stringstream grps;
     bool found_grp = false;
     // Start with the DN
-    char *dn = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
+    char *dn = NULL;
+
+    if (!globus_verify(cert, chain, &dn)) {
+        std::cerr << "Globus chain verification failure.\n";
+        return "";
+    }
+
     key << dn << "::";
     free(dn);
 
@@ -33,6 +40,10 @@ GetKey(X509 *cert, STACK_OF(X509) *chain, XrdSecEntity &ent)
         char *errmsg = VOMS_ErrorMessage(voms_ptr, errcode, NULL, 0);
         std::cerr << "VOMS failure (" << errcode << "): " << errmsg << std::endl;
         free(errmsg);
+        VOMS_Destroy(voms_ptr);
+        ent.vorg = NULL;
+        ent.role = NULL;
+        ent.grps = NULL;
         return key.str();
     }
 
