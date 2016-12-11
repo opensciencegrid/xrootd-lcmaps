@@ -3,3 +3,5 @@ CMakeFiles/
 Makefile
 cmake_install.cmake
 libXrdLcmaps.so*
+install_manifest.txt
+release_dir

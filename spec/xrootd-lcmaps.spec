@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.2.0
+Version: 1.3.0
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -8,7 +8,7 @@ Group: System Environment/Daemons
 License: BSD
 URL: https://github.com/bbockelm/xrootd-lcmaps
 # Generated from:
-# git-archive v%{version} --prefix=xrootd-lcmaps-%{version}/ | gzip -7 > ~/rpmbuild/SOURCES/xrootd-lcmaps-%{version}.tar.gz
+# git archive v%{version} --prefix=xrootd-lcmaps-%{version}/ | gzip -7 > ~/rpmbuild/SOURCES/xrootd-lcmaps-%{version}.tar.gz
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: xrootd-server-libs >= 1:4.1.0
@@ -17,6 +17,14 @@ BuildRequires: lcmaps-interface
 BuildRequires: lcmaps
 BuildRequires: cmake
 BuildRequires: voms-devel
+
+# For Globus-based chain verification
+BuildRequires: globus-gsi-credential-devel
+BuildRequires: globus-gsi-cert-utils-devel
+BuildRequires: globus-common-devel
+BuildRequires: globus-gsi-sysconfig-devel
+BuildRequires: globus-gsi-callback-devel
+
 Requires: xrootd-server >= 1:3.2
 
 %description
@@ -47,6 +55,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Sun Dec 11 2016 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.0-1
+- Change X509 verification to be based on Globus libraries
+
 * Thu Jan 14 2016 Brian Bockelman <bbockelm@cse.unl.edu> - 1.2.0-1
 - Have VOMS attributes forward to the xrootd credential.
 
@@ -89,11 +100,11 @@ rm -rf $RPM_BUILD_ROOT
 - Add the sample LCMAPS configuration.
 - Updated to the new tarball.  Calls the LCMAPS library directly instead of via helpers.
 
-* Thu Sep 17 2010 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.1-4
+* Fri Sep 17 2010 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.1-4
 - Recompile for new LCMAPS library.
 - Try and fix C++ vs C linker issues.
 - Link in all the required lcmaps libraries.
 
-* Wed Sep 16 2010 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.1-1
+* Thu Sep 16 2010 Brian Bockelman <bbockelm@cse.unl.edu> 0.0.1-1
 - Initial integration of LCMAPS into Xrootd.
 
