@@ -24,6 +24,13 @@ static const char default_db  [] = "/etc/lcmaps.db";
 static const char default_policy_name [] = "xrootd_policy";
 static const char plugin_name [] = "XrdSecgsiAuthz";
 
+// `proxy_app_verify_callback` comes from libvomsapi (but isn't found in the
+// headers).  It extends OpenSSL's built-in certificate verify function with
+// support for `old-style` proxies.
+extern "C" {
+  extern int proxy_app_verify_callback(X509_STORE_CTX *ctx, void *empty);
+}
+
 XrdVERSIONINFO(XrdHttpGetSecXtractor,"lcmaps");
 
 // Someday we'll actually hook into the Xrootd logging system...
@@ -300,6 +307,9 @@ public:
         // disable sessions for now.
         SSL_CTX_set_session_cache_mode(sslctx, SSL_SESS_CACHE_OFF);
 
+        // Utilize VOMS's peer certificate verification function (which
+        // supports old-style proxies).
+        SSL_CTX_set_cert_verify_callback(sslctx, proxy_app_verify_callback, 0);
         return 0;
     }
 

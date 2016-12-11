@@ -76,7 +76,7 @@ GetKey(X509 *cert, STACK_OF(X509) *chain, XrdSecEntity &ent)
             }
             key << ",";
         }
-        for (int idx2 = 0; it->fqan[idx2] != nullptr; idx++)
+        for (int idx2 = 0; it->fqan[idx2] != nullptr; idx2++)
         {
             if (found_fqan) {endorsements << ",";}
             else {found_fqan = true;}

@@ -14,6 +14,9 @@
 
 #include "XrdLcmapsConfig.hh"
 #include "XrdLcmapsKey.hh"
+#include "GlobusSupport.hh"
+
+#include "openssl/x509.h"
 
 #include <iostream>
 #include <stdio.h>
@@ -98,19 +101,14 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
       PRINT(err_pfx << "LCMAPS failed or denied mapping");
       return -1;
    }
-   /* // MT 2011-07-19 Why is this commented out?
-   if (pgid_list)
-      free(pgid_list);
-   if (sgid_list)
-      free(sgid_list);
-   if (poolindex)
-      free(poolindex);
-   */
+
    PRINT(inf_pfx << "Got uid " << uid);
    struct passwd * pw = getpwuid(uid);
+   // If LCMAPS allows the mapping - but we're missing a username, we proceed.
+   // The certificate was valid; we just treat this as an unmapped user in the
+   // Xrootd framework.
    if (pw == NULL) {
-       // Fatal. Non fatal return still allows login (go figure).
-      return -1;
+      return 0;
    }
 
    // DN is in 'name' (--gmapopt=10), move it over to moninfo ...
@@ -147,31 +145,26 @@ int XrdSecgsiAuthzKey(XrdSecEntity &entity, char **key)
       PRINT(err_pfx << "'key' must be defined.");
       return -1;
    }
-   if (!entity.name) {
-      PRINT(err_pfx << "'entity.name' must be defined (-gmapopt=10).");
+
+   X509 *cert;
+   STACK_OF(X509*) chain;
+   if (!globus_get_cert_and_chain(entity.creds, entity.credslen, &cert, &chain)) {
+      PRINT(err_pfx << "Failed to parse certificate chain.");
       return -1;
    }
 
-   // PRINT(inf_pfx << "entity.name='"<< (entity.name ? entity.name : "null") << "'.");
-   // PRINT(inf_pfx << "entity.vorg='"<< (entity.vorg ? entity.vorg : "null") << "'.");
-   // PRINT(inf_pfx << "entity.role='"<< (entity.role ? entity.role : "null") << "'.");
-   // PRINT(inf_pfx << "entity.endorsements='"<< (entity.endorsements ? entity.endorsements : "null") << "'.");
+   std::string skey = GetKey(cert, chain, entity);
 
-   // Return DN (in name) + endrosments as the key:
-   XrdOucString s(entity.name);
-   if (entity.endorsements) {
-     s += "::";
-     s += entity.endorsements;
+   X509_free(cert);
+   sk_X509_free(chain);
+
+   if (skey.empty()) {
+      PRINT(err_pfx << "Key verification failed.");
+      return -1;
    }
-   *key = strdup(s.c_str());
-   PRINT(inf_pfx << "Returning '" << s << "' of length " << s.length() << " as key.");
-   return s.length() + 1;
-
-   // To use the whole proxy as the key:
-   // *key = new char[entity.credslen + 1];
-   // strcpy(*key, entity.creds);
-   // PRINT(inf_pfx << "Returning creds of len " << entity.credslen << " as key.");
-   // return entity.credslen;
+   *key = strdup(skey.c_str());
+   PRINT(inf_pfx << "Returning '" << skey << "' of length " << skey.length() << " as key.");
+   return skey.length() + 1;
 }
 
 

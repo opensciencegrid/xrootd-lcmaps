@@ -366,7 +366,7 @@ Verify::operator() (globus_gsi_cred_handle_t cred_handle)
 struct authz_state
 {
   globus_gsi_cred_handle_t m_cred = nullptr;
-  char *m_subject;
+  char *m_subject = nullptr;
   BIO *m_bio = nullptr;
 
   ~authz_state() {
@@ -377,62 +377,8 @@ struct authz_state
 
 };
 
-bool globus_verify_internal(authz_state &state, char **dn)
-{
-  globus_result_t result;
+}  // anonymous namespace
 
-  try {
-    Verify verify(CertStore::GetVerify());
-    result = verify(state.m_cred);
-  } catch (globus_result_t result) {
-    std::cerr << "Failed to create verification context.\n";
-    globus_print(result);
-    return result;
-  }
-  if (GLOBUS_SUCCESS != result) {
-    std::cerr << "Failed to validate credentials.\n";
-    globus_print(result);
-    return false;
-  }
-
-  X509 *cert = nullptr;
-  if (GLOBUS_SUCCESS != (result = globus_gsi_cred_get_cert(state.m_cred, &cert))) {
-    return result;
-  }
-
-  STACK_OF(X509) *cert_chain = nullptr;
-  if (GLOBUS_SUCCESS != (result = globus_gsi_cred_get_cert_chain(state.m_cred, &cert_chain))) {
-    return result;
-  }
-
-  // Look through certificates to find an EEC (which has the subject)
-  globus_gsi_cert_utils_cert_type_t cert_type;
-  X509 *eec_cert = cert;
-  result = globus_gsi_cert_utils_get_cert_type(cert, &cert_type);
-  if (GLOBUS_SUCCESS != result) {
-    globus_print(result);
-    return false;
-  }
-  if (!(cert_type & GLOBUS_GSI_CERT_UTILS_TYPE_EEC)) {
-    result = globus_gsi_cert_utils_get_identity_cert(cert_chain, &eec_cert);
-    if (GLOBUS_SUCCESS != result) {
-      globus_print(result);
-      return false;
-    }
-  }
-
-  // From the EEC, use OpenSSL to determine the subject
-  state.m_subject = X509_NAME_oneline(X509_get_subject_name(eec_cert), NULL, 0);
-  if (!dn) {
-    std::cerr << "Unable to determine certificate DN.\n";
-    return false;
-  }
-  if (dn) {*dn = strdup(state.m_subject);}
-
-  return true;
-}
-
-}
 
 bool globus_verify(X509* cert, STACK_OF(X509*) chain, char** dn)
 {
@@ -459,13 +405,52 @@ bool globus_verify(X509* cert, STACK_OF(X509*) chain, char** dn)
     return false;
   }
 
-  return globus_verify_internal(state, dn);
+  try {
+    Verify verify(CertStore::GetVerify());
+    result = verify(state.m_cred);
+  } catch (globus_result_t result) {
+    std::cerr << "Failed to create verification context.\n";
+    globus_print(result);
+    return result;
+  }
+  if (GLOBUS_SUCCESS != result) {
+    std::cerr << "Failed to validate credentials.\n";
+    globus_print(result);
+    return false;
+  }
+
+  // Look through certificates to find an EEC (which has the subject)
+  globus_gsi_cert_utils_cert_type_t cert_type;
+  X509 *eec_cert = cert;
+  result = globus_gsi_cert_utils_get_cert_type(cert, &cert_type);
+  if (GLOBUS_SUCCESS != result) {
+    globus_print(result);
+    return false;
+  }
+  if (!(cert_type & GLOBUS_GSI_CERT_UTILS_TYPE_EEC)) {
+    result = globus_gsi_cert_utils_get_identity_cert(chain, &eec_cert);
+    if (GLOBUS_SUCCESS != result) {
+      globus_print(result);
+      return false;
+    }
+  }
+
+  // From the EEC, use OpenSSL to determine the subject
+  state.m_subject = X509_NAME_oneline(X509_get_subject_name(eec_cert), NULL, 0);
+  if (!dn) {
+    std::cerr << "Unable to determine certificate DN.\n";
+    return false;
+  }
+  if (dn) {*dn = strdup(state.m_subject);}
+
+  return true;
 }
 
 
-bool globus_verify(const char *creds, char **dn)
+bool globus_get_cert_and_chain(const char * creds, size_t credslen, X509 **cert, STACK_OF(X509) **chain)
 {
-  if (dn) {*dn = nullptr;}
+  if (cert) {*cert = nullptr;}
+  if (chain) {*chain = nullptr;}
 
   authz_state state;
 
@@ -477,18 +462,28 @@ bool globus_verify(const char *creds, char **dn)
 
   // OpenSSL wiki states that BIO_new_mem_buf results in a read-only object,
   // meaning the const_cast ought to be safe.
-  state.m_bio = BIO_new_mem_buf(const_cast<char *>(creds), -1);
+  state.m_bio = BIO_new_mem_buf(const_cast<char *>(creds), credslen);
   BIO_ctrl(state.m_bio, BIO_CTRL_SET_CLOSE, BIO_NOCLOSE, NULL);
   if (!state.m_bio) {
     std::cerr << "Unable to allocate new BIO object" << std::endl;
     return false;
   }
 
-  result = globus_gsi_cred_read_proxy_bio(state.m_cred, state.m_bio);
+  result = globus_gsi_cred_read_cert_bio(state.m_cred, state.m_bio);
   if (GLOBUS_SUCCESS != result) {
     globus_print(result);
     return false;
   }
 
-  return globus_verify_internal(state, dn);
+  if (GLOBUS_SUCCESS != (result = globus_gsi_cred_get_cert(state.m_cred, cert))) {
+    globus_print(result);
+    return false;
+  }
+
+  if (GLOBUS_SUCCESS != (result = globus_gsi_cred_get_cert_chain(state.m_cred, chain))) {
+    globus_print(result);
+    return false;
+  }
+
+  return true;
 }

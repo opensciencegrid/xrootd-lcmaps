@@ -23,9 +23,15 @@ bool globus_deactivate();
 bool globus_verify(X509* cert, STACK_OF(X509*) chain, char **dn);
 
 /**
- * Alternate version of globus_verify
+ * Uses Globus to create a cert and chain from a PEM-formatted string in memory.
  * - `creds`: PEM-formatted version of the credential chain.
+ * - `cert`: Output variable; last certificate in creds.  Must be freed with
+ *    X509_free.
+ * - `chain`: Output variable; last N-1 certificates in creds.  Must be freed
+ *    with sk_X509_free.
+ *
+ * Returns false on failure.
  */
-bool globus_verify(const char * creds, char **dn);
+bool globus_get_cert_and_chain(const char * creds, size_t credslen, X509 **cert, STACK_OF(X509) **chain);
 
 #endif  // __GLOBUS_SUPPORT_H_
