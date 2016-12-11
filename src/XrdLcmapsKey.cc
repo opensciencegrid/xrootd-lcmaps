@@ -21,13 +21,22 @@ GetKey(X509 *cert, STACK_OF(X509) *chain, XrdSecEntity &ent)
     std::stringstream key;
     std::stringstream grps;
     bool found_grp = false;
-    // Start with the DN
-    char *dn = NULL;
 
+    // This plugin overrides any prior group information.
+    free(ent.vorg); ent.vorg = nullptr;
+    free(ent.role); ent.role = nullptr;
+    free(ent.grps); ent.grps = nullptr;
+    free(ent.endorsements); ent.endorsements = nullptr;
+
+    // Start with the DN
+    char *dn = nullptr;
     if (!globus_verify(cert, chain, &dn)) {
         std::cerr << "Globus chain verification failure.\n";
         return "";
     }
+
+    // Set the monitoring information to be equal to the DN.
+    free(ent.moninfo); ent.moninfo = strdup(dn);
 
     key << dn << "::";
     free(dn);
@@ -41,19 +50,18 @@ GetKey(X509 *cert, STACK_OF(X509) *chain, XrdSecEntity &ent)
         std::cerr << "VOMS failure (" << errcode << "): " << errmsg << std::endl;
         free(errmsg);
         VOMS_Destroy(voms_ptr);
-        ent.vorg = NULL;
-        ent.role = NULL;
-        ent.grps = NULL;
         return key.str();
     }
 
-    for (int idx = 0; voms_ptr->data[idx] != NULL; idx++)
+    bool found_fqan = false;
+    std::stringstream endorsements;
+    for (int idx = 0; voms_ptr->data[idx] != nullptr; idx++)
     {
         struct voms *it = voms_ptr->data[idx];
         if (!it->voname) {continue;}
         if (!ent.vorg) {ent.vorg = strdup(it->voname);}
         key << it->voname << ":";
-        for (int idx2 = 0; it->std[idx2] != NULL; idx2++)
+        for (int idx2 = 0; it->std[idx2] != nullptr; idx2++)
         {
             struct data *it2 = it->std[idx2];
             if (!it2->group) {continue;}
@@ -68,10 +76,25 @@ GetKey(X509 *cert, STACK_OF(X509) *chain, XrdSecEntity &ent)
             }
             key << ",";
         }
+        for (int idx2 = 0; it->fqan[idx2] != nullptr; idx++)
+        {
+            if (found_fqan) {endorsements << ",";}
+            else {found_fqan = true;}
+            endorsements << it->fqan[idx2];
+        }
+
         key << "::";
     }
+
     VOMS_Destroy(voms_ptr);
-    ent.grps = strdup(grps.str().c_str());
+    if (found_grp)
+    {
+        ent.grps = strdup(grps.str().c_str());
+    }
+    if (found_fqan)
+    {
+        ent.endorsements = strdup(endorsements.str().c_str());
+    }
     return key.str();
 }
 

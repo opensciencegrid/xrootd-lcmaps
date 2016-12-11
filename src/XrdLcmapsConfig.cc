@@ -17,7 +17,7 @@ static const char default_policy_name [] = "xrootd_policy";
 
 int XrdSecgsiAuthzUsage(int rc)
 {
-   std::cerr << "Usage: --lcmapscfg <filename> [--loglevel <level>] [--osg]" << std::endl
+   std::cerr << "Usage: --lcmapscfg <filename> [--loglevel <level>]" << std::endl
              << "    --loglevel   passed on as LCMAPS_DEBUG_LEVEL" << std::endl;
    return rc;
 }

@@ -22,4 +22,10 @@ bool globus_deactivate();
  */
 bool globus_verify(X509* cert, STACK_OF(X509*) chain, char **dn);
 
+/**
+ * Alternate version of globus_verify
+ * - `creds`: PEM-formatted version of the credential chain.
+ */
+bool globus_verify(const char * creds, char **dn);
+
 #endif  // __GLOBUS_SUPPORT_H_

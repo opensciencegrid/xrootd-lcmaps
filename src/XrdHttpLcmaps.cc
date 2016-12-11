@@ -1,13 +1,13 @@
 
 #include <iostream>
 #include <map>
+#include <mutex>
 
 #include <time.h>
 #include <openssl/ssl.h>
 
 #include <XrdHttp/XrdHttpSecXtractor.hh>
 #include <XrdVersion.hh>
-#include <XrdSys/XrdSysPthread.hh>
 #include <XrdSec/XrdSecEntity.hh>
 
 #include "GlobusSupport.hh"
@@ -23,13 +23,6 @@ extern "C" {
 static const char default_db  [] = "/etc/lcmaps.db";
 static const char default_policy_name [] = "xrootd_policy";
 static const char plugin_name [] = "XrdSecgsiAuthz";
-
-// `proxy_app_verify_callback` comes from libvomsapi (but isn't found in the
-// headers).  It extends OpenSSL's built-in certificate verify function with
-// support for `old-style` proxies.
-extern "C" {
-  extern int proxy_app_verify_callback(X509_STORE_CTX *ctx, void *empty);
-}
 
 XrdVERSIONINFO(XrdHttpGetSecXtractor,"lcmaps");
 
@@ -48,20 +41,20 @@ inline uint64_t monotonic_time() {
 }
 
 
+/**
+ * Given an entry in the cache (`in`) that represents the same identity
+ * as the current connection (`out`), copy forward the portions of
+ * XrdSecEntity that are related to the user.
+ *
+ * This purposely doesn't overwrite host or creds.
+ */
 void
 UpdateEntity(XrdSecEntity &out, XrdSecEntity const &in)
 {
     if (in.name) { free(out.name); out.name = strdup(in.name); }
-    if (in.host) { free(out.host); out.host = strdup(in.host); }
     if (in.vorg) { free(out.vorg); out.vorg = strdup(in.vorg); }
     if (in.role) { free(out.role); out.role = strdup(in.role); }
     if (in.grps) { free(out.grps); out.grps = strdup(in.grps); }
-    if (in.creds && in.credslen > 0)
-    {
-        free(out.creds);
-        out.creds = strdup(in.creds);
-        out.credslen = in.credslen;
-    }
     if (in.endorsements)
     {
         free(out.endorsements);
@@ -110,10 +103,9 @@ public:
     bool get(std::string key, struct XrdSecEntity &entity)
     {
         time_t now = monotonic_time();
-        m_mutex.Lock();
+        std::lock_guard<std::mutex> guard(m_mutex);
         if (now > m_last_clean + 100) {clean_tables();}
         KeyToEnt::const_iterator iter = m_map.find(key);
-        m_mutex.UnLock();
         if (iter == m_map.end()) {
             return false;
         }
@@ -132,7 +124,7 @@ public:
     void try_put(std::string key, struct XrdSecEntity const &entity)
     {
         time_t now = monotonic_time();
-        m_mutex.Lock();
+        std::lock_guard<std::mutex> guard(m_mutex);
         XrdSecEntity *new_ent = new XrdSecEntity();
         std::pair<KeyToEnt::iterator, bool> ret = m_map.insert(std::make_pair(key, std::make_pair(new_ent, now)));
         if (ret.second)
@@ -145,7 +137,6 @@ public:
         {
             delete new_ent;
         }
-        m_mutex.UnLock();
     }
 
 
@@ -186,7 +177,7 @@ private:
     typedef std::pair<XrdSecEntity*, time_t> ValueType;
     typedef std::map<std::string, ValueType> KeyToEnt;
 
-    XrdSysMutex m_mutex;
+    std::mutex m_mutex;
     time_t m_last_clean;
     KeyToEnt m_map;
     static XrdMappingCache m_cache;
@@ -228,15 +219,14 @@ public:
         }
 
         std::string key = GetKey(peer_certificate, peer_chain, entity);
-        if (!key.size()) {  // Empty key indicates failure.
+        if (!key.size()) {  // Empty key indicates failure of verification.
             sk_X509_free(full_stack);
             X509_free(peer_certificate);
             free(entity.moninfo);
             free(entity.name);
-            PRINT(inf_pfx << "Key lookup failed.");
             entity.moninfo = strdup("Failed DN verification");
             entity.name = NULL;
-            return 0;
+            return -1;
         }
         XrdMappingCache &mcache = XrdMappingCache::GetInstance();
         PRINT(inf_pfx << "Lookup with key " << key);
@@ -248,8 +238,7 @@ public:
         }
 
         // Grab the global mutex - lcmaps is not thread-safe.
-        // TODO(bbockelm): Cache lookups
-        XrdSysMutexHelper lock(&m_mutex);
+        std::lock_guard<std::mutex> guard(m_mutex);
 
         char  *poolindex = NULL;
         uid_t  uid = -1;
@@ -297,8 +286,6 @@ public:
             return -1;
         }
 
-        free(entity.moninfo);
-        entity.moninfo = entity.name;
         entity.name = strdup(pw->pw_name);
 
         mcache.try_put(key, entity);
@@ -308,14 +295,11 @@ public:
 
     virtual int Init(SSL_CTX *sslctx, int)
     {
-        // TODO(bbockelm): OpenSSL docs note that peer_chain is not available
+        // NOTE(bbockelm): OpenSSL docs note that peer_chain is not available
         // in reused sessions.  We should build a session cache, but we just
         // disable sessions for now.
         SSL_CTX_set_session_cache_mode(sslctx, SSL_SESS_CACHE_OFF);
 
-        // Utilize VOMS's peer certificate verification function (which
-        // supports old-style proxies).
-        SSL_CTX_set_cert_verify_callback(sslctx, proxy_app_verify_callback, 0);
         return 0;
     }
 
@@ -331,12 +315,12 @@ public:
 private:
 
     XrdSysError *eDest;
-    static XrdSysMutex m_mutex;
+    static std::mutex m_mutex;
 
 };
 
 
-XrdSysMutex XrdHttpLcmaps::m_mutex;
+std::mutex XrdHttpLcmaps::m_mutex;
 
 
 extern "C" XrdHttpSecXtractor *XrdHttpGetSecXtractor(XrdHttpSecXtractorArgs)
