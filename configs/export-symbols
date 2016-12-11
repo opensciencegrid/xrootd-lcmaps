@@ -1,0 +1,10 @@
+{
+global:
+  XrdHttpGetSecXtractor*;
+  XrdSecgsiAuthzFun*;
+  XrdSecgsiAuthzInit*;
+  XrdSecgsiAuthzKey*;
+
+local:
+  *;
+};
