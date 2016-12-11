@@ -255,9 +255,23 @@ class CertStore {
   friend class VerifyCtx;
   friend class Verify;
 
-  CertStore() {
-    static const char * _function_name_ = "CertStore::CertStore()";
+  CertStore()
+  {
+    //std::cerr << "Caching trust roots into memory\n";
+    reload();
+  }
 
+  /**
+   * Reload the trust roots from disk.
+   */
+  void reload()
+  {
+    static const char _function_name_ [] = "CertStore::reload()";
+
+    if (m_cert_store)
+    {
+        X509_STORE_free(m_cert_store);
+    }
     m_cert_store = X509_STORE_new();
     if (m_cert_store == NULL)
     {
@@ -273,16 +287,15 @@ class CertStore {
     X509_STORE_set_flags(m_cert_store, X509_V_FLAG_ALLOW_PROXY_CERTS);
     m_cert_store->check_issued = globus_gsi_callback_check_issued;
 
-    reload();
-  }
+    m_expire_time = monotonic_time() + m_expiry_secs;
 
-  /**
-   * Reload the trust roots from disk.
-   */
-  void reload() {
     if (!X509_STORE_load_locations(m_cert_store, NULL, g_cert_dir))
     {
       globus_result_t result = GLOBUS_FAILURE;
+      GLOBUS_GSI_CRED_OPENSSL_ERROR_RESULT(
+        result,
+        GLOBUS_GSI_CRED_ERROR_WITH_CALLBACK_DATA,
+        (_GCRSL("Failed to initialize X509 store locations.")));
       throw result;
     }
   }
@@ -321,8 +334,10 @@ public:
 
    uint64_t now = monotonic_time();
    if (now > store->m_expire_time) {
-     store->m_expire_time = now + 600;
+     store->m_expire_time = now + m_expiry_secs;
+     //std::cerr << "Memory cache of trust roots expired; reloading\n";
      store->reload();
+     //std::cerr << "Reload complete.\n";
    }
 
     return Verify(*m_ctx, *store);
@@ -331,8 +346,9 @@ public:
 private:
   uint64_t m_expire_time;
   std::mutex m_mutex;
-  X509_STORE *m_cert_store;
+  X509_STORE *m_cert_store = nullptr;
   static const unsigned m_store_size = 63;
+  static const unsigned m_expiry_secs = 600;
   static std::array<std::unique_ptr<CertStore>, m_store_size> m_store;
   static thread_local std::unique_ptr<VerifyCtx> m_ctx;
 };
