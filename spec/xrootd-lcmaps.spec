@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.3.0
+Version: 1.3.1
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -55,6 +55,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Mon Feb 20 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.1-1
+- Fix population of the role security entity
+
 * Sun Dec 11 2016 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.0-1
 - Change X509 verification to be based on Globus libraries
 
