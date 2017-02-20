@@ -69,10 +69,13 @@ GetKey(X509 *cert, STACK_OF(X509) *chain, XrdSecEntity &ent)
             else {found_grp = true;}
             grps << it2->group;
             key << it2->group;
-            if (it2->role)
+            // Log the role, provided it is present and not the word "NULL".
+            if ((it2->role) && strcmp(it2->role, "NULL"))
             {
                 key << "/Role=" << it2->role;
-                ent.role = strdup(it2->role);
+                if (ent.role == nullptr) {
+                    ent.role = strdup(it2->role);
+                }
             }
             key << ",";
         }
