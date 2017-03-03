@@ -197,11 +197,14 @@ class XrdHttpLcmaps : public XrdHttpSecXtractor
 {
 public:
 
+    virtual ~XrdHttpLcmaps() {}
 
     virtual int GetSecData(XrdLink *, XrdSecEntity &entity, SSL *ssl)
     {
         static const char err_pfx[] = "ERROR in AuthzFun: ";
         static const char inf_pfx[] = "INFO in AuthzFun: ";
+
+        //PRINT(inf_pfx << "Running security information extractor");
 
         // Per OpenSSL docs, the ref count of peer_chain is not incremented.
         // Hence, we do not free this later.
@@ -212,10 +215,20 @@ public:
 
         // No remote client?  Add nothing to the entity, but do not
         // fail.
-        if (!peer_certificate) {return 0;}
+        if (!peer_certificate)
+        {
+            return 0;
+        }
+        // This one is a more difficult call.  We should have disabled session reuse.
         if (!peer_chain)
         {
+            PRINT(inf_pfx << "No available peer certificate chain.");
             X509_free(peer_certificate);
+            if (SSL_session_reused(ssl))
+            {
+                PRINT(inf_pfx << "SSL session was unexpectedly reused.");
+                return -1;
+            }
             return 0;
         }
 
@@ -306,6 +319,7 @@ public:
         // in reused sessions.  We should build a session cache, but we just
         // disable sessions for now.
         SSL_CTX_set_session_cache_mode(sslctx, SSL_SESS_CACHE_OFF);
+        SSL_CTX_set_options(sslctx, SSL_OP_NO_TICKET);
 
         // Utilize VOMS's peer certificate verification function (which
         // supports old-style proxies).

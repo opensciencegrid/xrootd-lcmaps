@@ -156,13 +156,15 @@ int XrdSecgsiAuthzKey(XrdSecEntity &entity, char **key)
    std::string skey = GetKey(cert, chain, entity);
 
    X509_free(cert);
-   sk_X509_free(chain);
+   sk_X509_pop_free(chain, X509_free);
 
    if (skey.empty()) {
       PRINT(err_pfx << "Key verification failed.");
       return -1;
    }
-   *key = strdup(skey.c_str());
+   *key = new char[skey.length()+1];
+   memcpy(*key, skey.c_str(), skey.length());
+   (*key)[skey.length()] = '\0';
    PRINT(inf_pfx << "Returning '" << skey << "' of length " << skey.length() << " as key.");
    return skey.length() + 1;
 }

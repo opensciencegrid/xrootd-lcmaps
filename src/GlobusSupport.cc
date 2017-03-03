@@ -197,6 +197,12 @@ class VerifyCtx {
                 local_result);
     }
 
+    // Remove the reference to the cert_chain so we can safely free it.
+    X509_STORE_CTX_set_chain(m_store_context, nullptr);
+    sk_X509_pop_free(cert_chain, X509_free);
+    X509_STORE_CTX_set_cert(m_store_context, nullptr);
+    X509_free(cert);
+
     // _cleanup resets the state of the context but doesn't free the
     // dynamically allocated structures.
     X509_STORE_CTX_cleanup(m_store_context);
