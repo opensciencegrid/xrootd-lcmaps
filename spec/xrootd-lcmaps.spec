@@ -25,7 +25,7 @@ BuildRequires: globus-common-devel
 BuildRequires: globus-gsi-sysconfig-devel
 BuildRequires: globus-gsi-callback-devel
 
-Requires: xrootd-server >= 1:3.2
+Requires: xrootd-server >= 1:4.6.1
 
 %description
 %{summary}
@@ -57,6 +57,7 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Mon Feb 20 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.1-1
 - Fix population of the role security entity
+- Fix various memory leaks.
 
 * Sun Dec 11 2016 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.0-1
 - Change X509 verification to be based on Globus libraries
