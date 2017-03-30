@@ -24,11 +24,9 @@ static const char default_db  [] = "/etc/lcmaps.db";
 static const char default_policy_name [] = "xrootd_policy";
 static const char plugin_name [] = "XrdSecgsiAuthz";
 
-// `proxy_app_verify_callback` comes from libvomsapi (but isn't found in the
-// headers).  It extends OpenSSL's built-in certificate verify function with
-// support for `old-style` proxies.
-extern "C" {
-  extern int proxy_app_verify_callback(X509_STORE_CTX *ctx, void *empty);
+// We always pass the certificate since it is verified by Globus later on.
+static int proxy_app_verify_callback(X509_STORE_CTX *ctx, void *empty) {
+  return 1;
 }
 
 XrdVERSIONINFO(XrdHttpGetSecXtractor,"lcmaps");
@@ -321,9 +319,9 @@ public:
         SSL_CTX_set_session_cache_mode(sslctx, SSL_SESS_CACHE_OFF);
         SSL_CTX_set_options(sslctx, SSL_OP_NO_TICKET);
 
-        // Utilize VOMS's peer certificate verification function (which
-        // supports old-style proxies).
-        SSL_CTX_set_cert_verify_callback(sslctx, proxy_app_verify_callback, 0);
+        // Always accept the certificate at the OpenSSL level.  We'll do a standalone
+        // verification later with Globus.
+        SSL_CTX_set_cert_verify_callback(sslctx, proxy_app_verify_callback, NULL);
         return 0;
     }
 
