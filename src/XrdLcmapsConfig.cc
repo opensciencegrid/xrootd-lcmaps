@@ -73,6 +73,7 @@ int XrdSecgsiAuthzConfig(const char *cfg)
          {0, 0, 0, 0}
       };
       int option_index = 0;
+      bool invalid_arg = false;
       while ((c = getopt_long(argc, argv, "c:l:p:", long_options, &option_index)) != -1) {
          switch(c) {
             case 0:
@@ -96,12 +97,14 @@ int XrdSecgsiAuthzConfig(const char *cfg)
                         PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
                      }
             case '?':
-                     return XrdSecgsiAuthzUsage(-1);
+                     XrdSecgsiAuthzUsage(-1);
+                     invalid_arg = true;
             default:
                      PRINT(err_pfx << "XrdLcmaps: unexpected return value from getopt_long: '" << c << "'.");
-                     return -1;
+                     invalid_arg = true;
          }
       }
+      if (invalid_arg) {return -1;}
    }
 
    setenv("LCMAPS_DB_FILE", cfg_file, 1);

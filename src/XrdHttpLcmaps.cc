@@ -242,6 +242,10 @@ public:
             X509_free(peer_certificate);
             free(entity.moninfo);
             free(entity.name);
+            free(entity.grps); entity.grps = NULL;
+            free(entity.endorsements); entity.endorsements = NULL;
+            free(entity.vorg); entity.vorg = NULL;
+            free(entity.role); entity.role = NULL;
             entity.moninfo = strdup("Failed DN verification");
             entity.name = NULL;
             return -1;
@@ -304,6 +308,7 @@ public:
             return -1;
         }
 
+        free(entity.name);
         entity.name = strdup(pw->pw_name);
 
         mcache.try_put(key, entity);

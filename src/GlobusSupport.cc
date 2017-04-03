@@ -110,6 +110,14 @@ bool globus_deactivate() {
   return true;
 }
 
+
+namespace {
+struct GlobusCleanup {
+  ~GlobusCleanup() {globus_deactivate();}
+};
+GlobusCleanup cleanup_helper;
+}
+
 namespace {
 
 class Verify;
