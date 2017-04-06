@@ -10,6 +10,7 @@
 #include "globus/globus_gsi_callback_constants.h"
 #include "globus/globus_module.h"
 
+#include <atomic>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -126,6 +127,8 @@ class CertStore;
 class VerifyCtx {
   friend class Verify;
   friend class CertStore;
+
+  VerifyCtx(const VerifyCtx&) = delete;
 
   VerifyCtx() {
     globus_result_t result = GLOBUS_SUCCESS;
@@ -269,6 +272,8 @@ class CertStore {
   friend class VerifyCtx;
   friend class Verify;
 
+  CertStore(const CertStore&) = delete;
+
   CertStore()
   {
     //std::cerr << "Caching trust roots into memory\n";
@@ -280,6 +285,8 @@ class CertStore {
    */
   void reload()
   {
+    std::lock_guard<std::mutex> guard(m_mutex);
+
     static const char _function_name_ [] = "CertStore::reload()";
 
     if (m_cert_store)
@@ -338,7 +345,7 @@ public:
   GetVerify() {
     std::hash<std::thread::id> hasher;
     size_t slot = hasher(std::this_thread::get_id()) % m_store_size;
-    auto& store = m_store[slot];
+    std::unique_ptr<CertStore> &store = m_store[slot];
     if (!store) {
       store.reset(new CertStore());
     }
@@ -358,7 +365,7 @@ public:
   }
 
 private:
-  uint64_t m_expire_time;
+  std::atomic<uint64_t> m_expire_time;
   std::mutex m_mutex;
   X509_STORE *m_cert_store = nullptr;
   static const unsigned m_store_size = 63;
