@@ -163,6 +163,9 @@ class VerifyCtx {
 
     // Initialize GSI callback data
     // proxy_depth variables need to be cleared before every validation
+    if (m_callback_data) {
+        globus_gsi_callback_data_destroy(m_callback_data);
+    }
     result = globus_gsi_callback_data_init(&m_callback_data);
     if (GLOBUS_SUCCESS != result) {
       globus_print(result);
@@ -222,6 +225,7 @@ class VerifyCtx {
 
     // Free GSI callback data
     globus_gsi_callback_data_destroy(m_callback_data);
+    m_callback_data = nullptr;
 
     return result;
   }
@@ -234,6 +238,10 @@ public:
     if (m_store_context)
     {
       X509_STORE_CTX_free(m_store_context);
+    }
+    if (m_callback_data)
+    {
+      globus_gsi_callback_data_destroy(m_callback_data);
     }
   }
 
