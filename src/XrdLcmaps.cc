@@ -178,6 +178,8 @@ int XrdSecgsiAuthzInit(const char *cfg)
    int retval = XrdSecgsiAuthzConfig(cfg);
    if (retval) {return retval;}
 
+   if (!globus_activate()) {return -1;}
+
    // Done
    // 1 means 'OK and I want the certificate in PEM base64 format'
    return g_certificate_format;
