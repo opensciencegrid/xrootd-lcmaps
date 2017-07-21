@@ -168,6 +168,7 @@ class VerifyCtx {
     }
     result = globus_gsi_callback_data_init(&m_callback_data);
     if (GLOBUS_SUCCESS != result) {
+      m_callback_data = nullptr;
       globus_print(result);
       return result;
     }
