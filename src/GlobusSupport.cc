@@ -500,7 +500,6 @@ bool globus_get_cert_and_chain(const char * creds, size_t credslen, X509 **cert,
   // OpenSSL wiki states that BIO_new_mem_buf results in a read-only object,
   // meaning the const_cast ought to be safe.
   state.m_bio = BIO_new_mem_buf(const_cast<char *>(creds), credslen);
-  BIO_ctrl(state.m_bio, BIO_CTRL_SET_CLOSE, BIO_NOCLOSE, NULL);
   if (!state.m_bio) {
     std::cerr << "Unable to allocate new BIO object" << std::endl;
     return false;
