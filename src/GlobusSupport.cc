@@ -139,17 +139,6 @@ class VerifyCtx {
     }
 
     globus_gsi_callback_get_X509_STORE_callback_data_index(&m_callback_data_index);
-
-    result = globus_gsi_callback_data_init(&m_callback_data);
-    if (GLOBUS_SUCCESS != result) {
-      globus_print(result);
-      throw result;
-    }
-    result = globus_gsi_callback_set_cert_dir(m_callback_data, g_cert_dir);
-    if (GLOBUS_SUCCESS != result) {
-      globus_print(result);
-      throw result;
-    }
   }
 
   void acquire(X509_STORE * cert_store) {m_cert_store = cert_store;}
@@ -169,6 +158,23 @@ class VerifyCtx {
 
     STACK_OF(X509) *cert_chain = nullptr;
     if (GLOBUS_SUCCESS != (result = globus_gsi_cred_get_cert_chain(cred_handle, &cert_chain))) {
+      return result;
+    }
+
+    // Initialize GSI callback data
+    // proxy_depth variables need to be cleared before every validation
+    if (m_callback_data) {
+        globus_gsi_callback_data_destroy(m_callback_data);
+    }
+    result = globus_gsi_callback_data_init(&m_callback_data);
+    if (GLOBUS_SUCCESS != result) {
+      m_callback_data = nullptr;
+      globus_print(result);
+      return result;
+    }
+    result = globus_gsi_callback_set_cert_dir(m_callback_data, g_cert_dir);
+    if (GLOBUS_SUCCESS != result) {
+      globus_print(result);
       return result;
     }
 
@@ -217,6 +223,10 @@ class VerifyCtx {
     // _cleanup resets the state of the context but doesn't free the
     // dynamically allocated structures.
     X509_STORE_CTX_cleanup(m_store_context);
+
+    // Free GSI callback data
+    globus_gsi_callback_data_destroy(m_callback_data);
+    m_callback_data = nullptr;
 
     return result;
   }
