@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.3.3
+Version: 1.3.4
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -55,6 +55,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Fri Jul 28 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.4-1
+- Cleanup various OpenSSL-related bugs.
+
 * Fri May 26 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.3-1
 - Avoid segfault triggered by a reload without the mutex.
 
