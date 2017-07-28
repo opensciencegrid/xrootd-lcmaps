@@ -139,17 +139,6 @@ class VerifyCtx {
     }
 
     globus_gsi_callback_get_X509_STORE_callback_data_index(&m_callback_data_index);
-
-    result = globus_gsi_callback_data_init(&m_callback_data);
-    if (GLOBUS_SUCCESS != result) {
-      globus_print(result);
-      throw result;
-    }
-    result = globus_gsi_callback_set_cert_dir(m_callback_data, g_cert_dir);
-    if (GLOBUS_SUCCESS != result) {
-      globus_print(result);
-      throw result;
-    }
   }
 
   void acquire(X509_STORE * cert_store) {m_cert_store = cert_store;}
@@ -172,12 +161,25 @@ class VerifyCtx {
       return result;
     }
 
+    // Initialize GSI callback data
+    std::unique_ptr<globus_gsi_callback_data_t, DeleteGsiCallbackData> callback_data(new globus_gsi_callback_data_t);
+    result = globus_gsi_callback_data_init(callback_data.get());
+    if (GLOBUS_SUCCESS != result) {
+      globus_print(result);
+      return result;
+    }
+    result = globus_gsi_callback_set_cert_dir(*callback_data, g_cert_dir);
+    if (GLOBUS_SUCCESS != result) {
+      globus_print(result);
+      return result;
+    }
+
     X509_STORE_CTX_init(m_store_context, m_cert_store, cert, cert_chain);
     X509_STORE_CTX_set_depth(m_store_context, GLOBUS_GSI_CALLBACK_VERIFY_DEPTH);
     X509_STORE_CTX_set_ex_data(
             m_store_context,
             m_callback_data_index,
-            (void *)m_callback_data);
+            (void *)(*callback_data));
     X509_STORE_CTX_set_flags(m_store_context, X509_V_FLAG_ALLOW_PROXY_CERTS);
 
     if (!X509_verify_cert(m_store_context))
@@ -190,7 +192,7 @@ class VerifyCtx {
         GLOBUS_GSI_CRED_ERROR_VERIFYING_CRED,
         (_GCRSL("Failed to verify credential")));
 
-      local_result = globus_gsi_callback_get_error(m_callback_data,
+      local_result = globus_gsi_callback_get_error(*callback_data,
                                                    &callback_error);
       if (local_result != GLOBUS_SUCCESS)
       {
@@ -230,17 +232,24 @@ public:
     {
       X509_STORE_CTX_free(m_store_context);
     }
-    if (m_callback_data)
-    {
-      globus_gsi_callback_data_destroy(m_callback_data);
-    }
   }
 
 private:
   int m_callback_data_index;
-  globus_gsi_callback_data_t  m_callback_data = nullptr;
   X509_STORE_CTX             *m_store_context = nullptr;
   X509_STORE                 *m_cert_store = nullptr;
+
+  // Deletion function for unique_ptr<globus_gsi_callback_data_t>
+  struct DeleteGsiCallbackData {
+    void operator()(globus_gsi_callback_data_t *p) {
+      if (*p) {
+        globus_gsi_callback_data_destroy(*p);
+        *p = nullptr;
+      }
+      delete p;
+    }
+  };
+
 };
 
 
