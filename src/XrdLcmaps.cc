@@ -27,8 +27,6 @@
 #include <pwd.h>
 #include <dlfcn.h>
 
-#include "XrdSys/XrdSysPthread.hh"
-
 #include <XrdOuc/XrdOucString.hh>
 #include <XrdSec/XrdSecEntity.hh>
 
@@ -41,8 +39,6 @@ XrdVERSIONINFO(XrdSecgsiAuthzInit,secgsiauthz);
 extern "C"
 {
 #include "lcmaps_basic.h"
-
-XrdSysMutex mutex;
 
 int XrdSecgsiAuthzInit(const char *cfg);
 int XrdSecgsiAuthzFun(XrdSecEntity &entity);
@@ -66,7 +62,7 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
    static const char inf_pfx[] = "INFO in AuthzFun: ";
 
    // Grab the global mutex.
-   XrdSysMutexHelper lock(&mutex);
+   std::lock_guard<std::mutex> guard(lcmaps_mutex);
 
    /* -1 is the mapcounter */
    // Need char, not const char.  Don't know if LCMAPS changes it.

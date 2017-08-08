@@ -4,6 +4,7 @@
 #include <getopt.h>
 
 #include <iostream>
+#include <mutex>
 
 extern "C" {
 #include <lcmaps.h>
@@ -133,3 +134,7 @@ int XrdSecgsiAuthzConfig(const char *cfg)
 
    return 0;
 }
+
+// lcmaps is not thread safe
+// Access is shared between XrdLcmaps and XrdHttpLcmaps
+std::mutex lcmaps_mutex;
