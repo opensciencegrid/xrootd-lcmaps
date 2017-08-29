@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.3.4
+Version: 1.3.5
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -55,6 +55,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Tue Aug 29 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.5-1
+- Fix ability to specify an alternate policy name.
+
 * Fri Jul 28 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.4-1
 - Cleanup various OpenSSL-related bugs.
 
