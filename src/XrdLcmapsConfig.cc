@@ -96,6 +96,7 @@ int XrdSecgsiAuthzConfig(const char *cfg)
                         policy_name = optarg;
                         PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
                      }
+                     break;
             case '?':
                      XrdSecgsiAuthzUsage(-1);
                      invalid_arg = true;
