@@ -77,7 +77,8 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
    int    npgid = 0, nsgid = 0;
 
    // To manage const cast issues
-   char * policy_name_copy = strdup(policy_name);
+   char * policy_name_copy = getenv("LCMAPS_POLICY_NAME") != NULL?strdup(getenv
+("LCMAPS_POLICY_NAME")):strdup(policy_name);
 
    int rc = lcmaps_run_with_pem_and_return_account(
         NULL,
