@@ -295,11 +295,16 @@ public:
         if (sgid_list) {free(sgid_list);}
         if (poolindex) {free(poolindex);}
 
-        // If there's a client cert but LCMAPS fails, we _do_ want to
-        // fail the whole thing.
+        // If there's a client cert but LCMAPS fails, we proceed with
+        // an anonymous / unmapped user as they may have additional
+        // per-file authorization.
+        //
+        // Previously, we denied the mapping as we didn't trust the
+        // verification routines outside those from LCMAPS.  Currently,
+        // we enforce validation from both Globus and VOMS.
         if (rc) {
             PRINT(err_pfx << "LCMAPS failed or denied mapping");
-            return -1;
+            return 0;
         }
 
         PRINT(inf_pfx << "Got uid " << uid);
