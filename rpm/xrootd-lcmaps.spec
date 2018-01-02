@@ -6,7 +6,7 @@ Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
 License: BSD
-URL: https://github.com/bbockelm/xrootd-lcmaps
+URL: https://github.com/opensciencegrid/xrootd-lcmaps
 # Generated from:
 # git archive v%{version} --prefix=xrootd-lcmaps-%{version}/ | gzip -7 > ~/rpmbuild/SOURCES/xrootd-lcmaps-%{version}.tar.gz
 Source0: %{name}-%{version}.tar.gz
@@ -34,6 +34,12 @@ Requires: xrootd-server >= 1:4.6.1
 %setup -q
 
 %build
+
+%if 0%{?el6}
+echo "*** This version does not build on EL 6 ***"
+exit 1
+%endif
+
 #cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
 %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
 make VERBOSE=1 %{?_smp_mflags}
@@ -63,6 +69,23 @@ rm -rf $RPM_BUILD_ROOT
 
 * Fri Jul 28 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.4-1
 - Cleanup various OpenSSL-related bugs.
+
+
+* Mon Jul 31 2017 Mátyás Selmeci <matyas@cs.wisc.edu> - 1.3.3-4
+- Always enable VOMS attributes verification (SOFTWARE-2848)
+
+* Wed May 31 2017 Carl Edquist <edquist@cs.wisc.edu> - 1.3.3-3
+- Don't build 1.3.3 for EL6 (SOFTWARE-2738)
+
+* Wed May 31 2017 Carl Edquist <edquist@cs.wisc.edu> - 1.3.3-2
+- Update patch to apply against 1.3.3 sources (SOFTWARE-2738)
+
+* Fri May 26 2017 Marian Zvada <marian.zvada@cern.ch> - 1.3.3-1
+- new release tagged; added Lock CertStore patch
+
+* Thu May 25 2017 Marian Zvada <marian.zvada@cern.ch> - 1.3.2-2
+- Fix bugleaks and memory warnings for 4.6.1
+- STAS-18
 
 * Fri May 26 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.3-1
 - Avoid segfault triggered by a reload without the mutex.
