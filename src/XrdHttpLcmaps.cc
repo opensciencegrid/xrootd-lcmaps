@@ -260,7 +260,7 @@ public:
         }
 
         // Grab the global mutex - lcmaps is not thread-safe.
-        std::lock_guard<std::mutex> guard(m_mutex);
+        std::lock_guard<std::mutex> guard(g_lcmaps_mutex);
 
         char  *poolindex = NULL;
         uid_t  uid = -1;
