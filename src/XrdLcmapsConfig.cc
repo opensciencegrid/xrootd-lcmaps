@@ -137,4 +137,4 @@ int XrdSecgsiAuthzConfig(const char *cfg)
 
 // lcmaps is not thread safe
 // Access is shared between XrdLcmaps and XrdHttpLcmaps
-std::mutex lcmaps_mutex;
+std::mutex g_lcmaps_mutex;

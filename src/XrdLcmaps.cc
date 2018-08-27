@@ -62,7 +62,7 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
    static const char inf_pfx[] = "INFO in AuthzFun: ";
 
    // Grab the global mutex.
-   std::lock_guard<std::mutex> guard(lcmaps_mutex);
+   std::lock_guard<std::mutex> guard(g_lcmaps_mutex);
 
    /* -1 is the mapcounter */
    // Need char, not const char.  Don't know if LCMAPS changes it.

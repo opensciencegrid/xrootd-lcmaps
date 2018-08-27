@@ -4,6 +4,6 @@
 #include <mutex>
 
 int XrdSecgsiAuthzConfig(const char *cfg);
-extern std::mutex lcmaps_mutex;
+extern std::mutex g_lcmaps_mutex;
 
 #endif
