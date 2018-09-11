@@ -10,7 +10,6 @@ URL: https://github.com/opensciencegrid/xrootd-lcmaps
 # Generated from:
 # git archive v%{version} --prefix=xrootd-lcmaps-%{version}/ | gzip -7 > ~/rpmbuild/SOURCES/xrootd-lcmaps-%{version}.tar.gz
 Source0: %{name}-%{version}.tar.gz
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: xrootd-server-libs >= 1:4.1.0
 BuildRequires: xrootd-server-devel >= 1:4.1.0
 BuildRequires: lcmaps-interface
@@ -31,6 +30,7 @@ Requires: xrootd-server >= 1:4.6.1
 %{summary}
 
 %prep
+
 %setup -q
 
 %build
@@ -45,11 +45,7 @@ exit 1
 make VERBOSE=1 %{?_smp_mflags}
 
 %install
-rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
@@ -71,11 +67,15 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Aug 29 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.5-1
 - Fix ability to specify an alternate policy name.
 
-* Fri Jul 28 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.4-1
-- Cleanup various OpenSSL-related bugs.
+* Mon Aug 07 2017 Marian Zvada <marian.zvada@cern.ch> - 1.3.4-1
+- includes cleanup of various OpesnSSL-related bugs from 1.3.4 github tag
+- no need patch from SW-2848 for OSG3.4 build
 
 * Mon Jul 31 2017 Mátyás Selmeci <matyas@cs.wisc.edu> - 1.3.3-4
 - Always enable VOMS attributes verification (SOFTWARE-2848)
+
+* Fri Jul 28 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.4-1
+- Cleanup various OpenSSL-related bugs.
 
 * Wed May 31 2017 Carl Edquist <edquist@cs.wisc.edu> - 1.3.3-3
 - Don't build 1.3.3 for EL6 (SOFTWARE-2738)
@@ -86,12 +86,12 @@ rm -rf $RPM_BUILD_ROOT
 * Fri May 26 2017 Marian Zvada <marian.zvada@cern.ch> - 1.3.3-1
 - new release tagged; added Lock CertStore patch
 
-* Thu May 25 2017 Marian Zvada <marian.zvada@cern.ch> - 1.3.2-2
-- Fix bugleaks and memory warnings for 4.6.1
-- STAS-18
-
 * Fri May 26 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.3-1
 - Avoid segfault triggered by a reload without the mutex.
+
+* Wed May 24 2017 Marian Zvada <marian.zvada@cern.ch> - 1.3.2-2
+- Fix bugleaks and memory warnings for 4.6.1
+- STAS-18
 
 * Thu Mar 30 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.2-1
 - Only perform verification in Globus, not raw OpenSSL.
