@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.4.0
+Version: 1.4.1
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -61,6 +61,10 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Mon Sep 10 2018 Carl Edquist <edquist@cs.wisc.edu> - 1.4.1-1
+- Use single mutex for LCMAPS calls from XrdLcmaps and XrdHttpLcmaps (#16)
+- Drop OWNER_EXECUTE for lcmaps.cfg (#17)
+
 * Tue Jan 02 2018 Brian Bockelman <bbockelm@cse.unl.edu> - 1.4.0-1
 - Allow authentication to continue even when authz fails.
 
@@ -69,7 +73,6 @@ rm -rf $RPM_BUILD_ROOT
 
 * Fri Jul 28 2017 Brian Bockelman <bbockelm@cse.unl.edu> - 1.3.4-1
 - Cleanup various OpenSSL-related bugs.
-
 
 * Mon Jul 31 2017 Mátyás Selmeci <matyas@cs.wisc.edu> - 1.3.3-4
 - Always enable VOMS attributes verification (SOFTWARE-2848)
