@@ -10,6 +10,9 @@ extern "C" {
 #include <lcmaps.h>
 }
 
+// Disable LCMAPS completely
+int g_no_authz = 0;
+
 static const char plugin_name [] = "XrdSecgsiAuthz";
 static const char default_db  [] = "/etc/lcmaps.db";
 static const char default_policy_name [] = "xrootd_policy";
@@ -71,6 +74,7 @@ int XrdSecgsiAuthzConfig(const char *cfg)
          {"lcmapscfg", required_argument, 0, 'c'},
          {"loglevel",  required_argument, 0, 'l'},
          {"policy",    required_argument, 0, 'p'},
+         {"no-authz",  no_argument, &g_no_authz, 1},
          {0, 0, 0, 0}
       };
       int option_index = 0;

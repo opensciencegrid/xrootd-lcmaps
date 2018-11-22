@@ -61,58 +61,62 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
    static const char err_pfx[] = "ERROR in AuthzFun: ";
    static const char inf_pfx[] = "INFO in AuthzFun: ";
 
-   // Grab the global mutex.
-   std::lock_guard<std::mutex> guard(g_lcmaps_mutex);
+   if (!g_no_authz) {
 
-   /* -1 is the mapcounter */
-   // Need char, not const char.  Don't know if LCMAPS changes it.
-   char  *pem_string_copy = strdup(entity.creds);
-   char  *poolindex = NULL;
-   uid_t  uid = -1;
-   gid_t *pgid_list = NULL, *sgid_list = NULL;
-   int    npgid = 0, nsgid = 0;
+      // Grab the global mutex.
+      std::lock_guard<std::mutex> guard(g_lcmaps_mutex);
 
-   // To manage const cast issues
-   const char * policy_name_env = getenv("LCMAPS_POLICY_NAME");
-   char * policy_name_copy = strdup(policy_name_env ? policy_name_env : policy_name);
+      /* -1 is the mapcounter */
+      // Need char, not const char.  Don't know if LCMAPS changes it.
+      char  *pem_string_copy = strdup(entity.creds);
+      char  *poolindex = NULL;
+      uid_t  uid = -1;
+      gid_t *pgid_list = NULL, *sgid_list = NULL;
+      int    npgid = 0, nsgid = 0;
 
-   int rc = lcmaps_run_with_pem_and_return_account(
-        NULL,
-        pem_string_copy,
-        -1, // Map counter
-        NULL,
-        policy_count, // One policy
-        &policy_name_copy, // Policy named "xrootd_policy"
-        &uid,
-        &pgid_list,
-        &npgid,
-        &sgid_list,
-        &nsgid,
-        &poolindex
-   );
+      // To manage const cast issues
+      const char * policy_name_env = getenv("LCMAPS_POLICY_NAME");
+      char * policy_name_copy = strdup(policy_name_env ? policy_name_env : policy_name);
 
-   free(policy_name_copy);
-   free(pem_string_copy);
+      int rc = lcmaps_run_with_pem_and_return_account(
+           NULL,
+           pem_string_copy,
+           -1, // Map counter
+           NULL,
+           policy_count, // One policy
+           &policy_name_copy, // Policy named "xrootd_policy"
+           &uid,
+           &pgid_list,
+           &npgid,
+           &sgid_list,
+           &nsgid,
+           &poolindex
+      );
 
-   if (rc) {
-      PRINT(err_pfx << "LCMAPS failed or denied mapping");
-      return -1;
+      free(policy_name_copy);
+      free(pem_string_copy);
+
+      if (rc) {
+         PRINT(err_pfx << "LCMAPS failed or denied mapping");
+         return -1;
+      }
+
+      PRINT(inf_pfx << "Got uid " << uid);
+      struct passwd * pw = getpwuid(uid);
+      // If LCMAPS allows the mapping - but we're missing a username, we proceed.
+      // The certificate was valid; we just treat this as an unmapped user in the
+      // Xrootd framework.
+      if (pw == NULL) {
+         return 0;
+      }
+
+      // DN is in 'name' (--gmapopt=10), move it over to moninfo ...
+      free(entity.moninfo);
+      entity.moninfo = entity.name;
+      // ... and copy the local username into 'name'.
+      entity.name = strdup(pw->pw_name);
+
    }
-
-   PRINT(inf_pfx << "Got uid " << uid);
-   struct passwd * pw = getpwuid(uid);
-   // If LCMAPS allows the mapping - but we're missing a username, we proceed.
-   // The certificate was valid; we just treat this as an unmapped user in the
-   // Xrootd framework.
-   if (pw == NULL) {
-      return 0;
-   }
-
-   // DN is in 'name' (--gmapopt=10), move it over to moninfo ...
-   free(entity.moninfo);
-   entity.moninfo = entity.name;
-   // ... and copy the local username into 'name'.
-   entity.name = strdup(pw->pw_name);
 
    PRINT(inf_pfx << "entity.name='"<< (entity.name ? entity.name : "null") << "'.");
    PRINT(inf_pfx << "entity.host='"<< (entity.host ? entity.host : "null") << "'.");
