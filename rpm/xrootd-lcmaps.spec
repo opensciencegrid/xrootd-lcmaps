@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.4.1
+Version: 1.5.0
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -57,6 +57,9 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Thu Nov 22 2018 Brian Bockelman <bbockelm@cse.unl.edu> - 1.5.0-1
+- Add mode to skip LCMAPS callout
+
 * Mon Sep 10 2018 Carl Edquist <edquist@cs.wisc.edu> - 1.4.1-1
 - Use single mutex for LCMAPS calls from XrdLcmaps and XrdHttpLcmaps (#16)
 - Drop OWNER_EXECUTE for lcmaps.cfg (#17)

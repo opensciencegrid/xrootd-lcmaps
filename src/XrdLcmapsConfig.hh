@@ -5,5 +5,6 @@
 
 int XrdSecgsiAuthzConfig(const char *cfg);
 extern std::mutex g_lcmaps_mutex;
+extern int g_no_authz;
 
 #endif
