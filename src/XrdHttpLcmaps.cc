@@ -203,6 +203,12 @@ public:
         static const char inf_pfx[] = "INFO in AuthzFun: ";
 
         //PRINT(inf_pfx << "Running security information extractor");
+        // Make sure to always clear out the entity first.
+        if (entity.name)
+        {
+            free(entity.name);
+            entity.name = NULL;
+        }
 
         // Per OpenSSL docs, the ref count of peer_chain is not incremented.
         // Hence, we do not free this later.
@@ -319,6 +325,25 @@ public:
             mcache.try_put(key, entity);
 
         } else {
+            char chash[30] = {0};
+            std::string key_dn = key.substr(0, key.find(':'));
+            for (int idx = 0; idx < sk_X509_num(full_stack); idx++)
+            {
+                X509 *current_cert = sk_X509_value(full_stack, idx);
+                char *dn = X509_NAME_oneline(X509_get_subject_name(current_cert), NULL, 0);
+                if (!strcmp(key_dn.c_str(), dn))
+                {
+                    snprintf(chash, sizeof(chash),
+                             "%08lx.0",
+                             X509_NAME_hash(X509_get_subject_name(current_cert)));
+                }
+            }
+
+            if (chash[0])
+            {
+                entity.name = strdup(chash);
+            }
+
             sk_X509_free(full_stack);
             X509_free(peer_certificate);
             mcache.try_put(key, entity);
