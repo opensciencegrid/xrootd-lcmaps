@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.5.0
+Version: 1.5.1
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -57,6 +57,9 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Fri Dec 21 2018 Brian Bockelman <bbockelm@cse.unl.edu> - 1.5.1-1
+- As specified, skip callout for HTTP
+
 * Thu Nov 22 2018 Brian Bockelman <bbockelm@cse.unl.edu> - 1.5.0-1
 - Add mode to skip LCMAPS callout
 

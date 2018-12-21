@@ -203,6 +203,12 @@ public:
         static const char inf_pfx[] = "INFO in AuthzFun: ";
 
         //PRINT(inf_pfx << "Running security information extractor");
+        // Make sure to always clear out the entity first.
+        if (entity.name)
+        {
+            free(entity.name);
+            entity.name = NULL;
+        }
 
         // Per OpenSSL docs, the ref count of peer_chain is not incremented.
         // Hence, we do not free this later.
@@ -259,65 +265,89 @@ public:
             return 0;
         }
 
-        // Grab the global mutex - lcmaps is not thread-safe.
-        std::lock_guard<std::mutex> guard(g_lcmaps_mutex);
+        if (!g_no_authz) {
+            // Grab the global mutex - lcmaps is not thread-safe.
+            std::lock_guard<std::mutex> guard(g_lcmaps_mutex);
 
-        char  *poolindex = NULL;
-        uid_t  uid = -1;
-        gid_t *pgid_list = NULL, *sgid_list = NULL;
-        int    npgid = 0, nsgid = 0;
-        lcmaps_request_t request = NULL; // Typically, the RSL
+            char  *poolindex = NULL;
+            uid_t  uid = -1;
+            gid_t *pgid_list = NULL, *sgid_list = NULL;
+            int    npgid = 0, nsgid = 0;
+            lcmaps_request_t request = NULL; // Typically, the RSL
 
-        // To manage const cast issues
-        char * policy_name_copy = strdup(default_policy_name);
+            // To manage const cast issues
+            char * policy_name_copy = strdup(default_policy_name);
 
-        int rc = lcmaps_run_with_stack_of_x509_and_return_account(
-            full_stack,
-            -1, // mapcounter
-            request,
-            policy_count,
-            &policy_name_copy,
-            &uid,
-            &pgid_list,
-            &npgid,
-            &sgid_list,
-            &nsgid,
-            &poolindex);
+            int rc = lcmaps_run_with_stack_of_x509_and_return_account(
+                full_stack,
+                -1, // mapcounter
+                request,
+                policy_count,
+                &policy_name_copy,
+                &uid,
+                &pgid_list,
+                &npgid,
+                &sgid_list,
+                &nsgid,
+                &poolindex);
 
-        if (policy_name_copy) {
-            free(policy_name_copy);
+            if (policy_name_copy) {
+                free(policy_name_copy);
+            }
+
+            sk_X509_free(full_stack);
+            X509_free(peer_certificate);
+
+            if (pgid_list) {free(pgid_list);}
+            if (sgid_list) {free(sgid_list);}
+            if (poolindex) {free(poolindex);}
+
+            // If there's a client cert but LCMAPS fails, we proceed with
+            // an anonymous / unmapped user as they may have additional
+            // per-file authorization.
+            //
+            // Previously, we denied the mapping as we didn't trust the
+            // verification routines outside those from LCMAPS.  Currently,
+            // we enforce validation from both Globus and VOMS.
+            if (rc) {
+                PRINT(err_pfx << "LCMAPS failed or denied mapping");
+                return 0;
+            }
+
+            PRINT(inf_pfx << "Got uid " << uid);
+            struct passwd * pw = getpwuid(uid);
+            if (pw == NULL) {
+                return -1;
+            }
+
+            free(entity.name);
+            entity.name = strdup(pw->pw_name);
+            mcache.try_put(key, entity);
+
+        } else {
+            char chash[30] = {0};
+            std::string key_dn = key.substr(0, key.find(':'));
+            for (int idx = 0; idx < sk_X509_num(full_stack); idx++)
+            {
+                X509 *current_cert = sk_X509_value(full_stack, idx);
+                char *dn = X509_NAME_oneline(X509_get_subject_name(current_cert), NULL, 0);
+                if (!strcmp(key_dn.c_str(), dn))
+                {
+                    snprintf(chash, sizeof(chash),
+                             "%08lx.0",
+                             X509_NAME_hash(X509_get_subject_name(current_cert)));
+                }
+            }
+
+            if (chash[0])
+            {
+                entity.name = strdup(chash);
+            }
+
+            sk_X509_free(full_stack);
+            X509_free(peer_certificate);
+            mcache.try_put(key, entity);
         }
-
-        sk_X509_free(full_stack);
-        X509_free(peer_certificate);
-
-        if (pgid_list) {free(pgid_list);}
-        if (sgid_list) {free(sgid_list);}
-        if (poolindex) {free(poolindex);}
-
-        // If there's a client cert but LCMAPS fails, we proceed with
-        // an anonymous / unmapped user as they may have additional
-        // per-file authorization.
-        //
-        // Previously, we denied the mapping as we didn't trust the
-        // verification routines outside those from LCMAPS.  Currently,
-        // we enforce validation from both Globus and VOMS.
-        if (rc) {
-            PRINT(err_pfx << "LCMAPS failed or denied mapping");
-            return 0;
-        }
-
-        PRINT(inf_pfx << "Got uid " << uid);
-        struct passwd * pw = getpwuid(uid);
-        if (pw == NULL) {
-            return -1;
-        }
-
-        free(entity.name);
-        entity.name = strdup(pw->pw_name);
-
-        mcache.try_put(key, entity);
-
         return 0;
     }
 

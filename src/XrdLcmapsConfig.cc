@@ -123,10 +123,12 @@ int XrdSecgsiAuthzConfig(const char *cfg)
       setenv("LCMAPS_DEBUG_LEVEL", log_level, 0);
    }
 
-   FILE *fp = fdopen(2, "w");
-   if (lcmaps_init_and_log(fp, 1)) {
-      PRINT(err_pfx << "Failed to initialize LCMAPS");
-      return -1;
+   if (!g_no_authz) {
+      FILE *fp = fdopen(2, "w");
+      if (lcmaps_init_and_log(fp, 1)) {
+         PRINT(err_pfx << "Failed to initialize LCMAPS");
+         return -1;
+      }
    }
 
    if (argv != NULL) {
