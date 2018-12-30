@@ -111,8 +111,8 @@ int XrdSecgsiAuthzFun(XrdSecEntity &entity)
       }
 
       // DN is in 'name' (--gmapopt=10), move it over to moninfo ...
-      free(entity.moninfo);
-      entity.moninfo = entity.name;
+      // free(entity.moninfo);
+      // entity.moninfo = entity.name;
       // ... and copy the local username into 'name'.
       entity.name = strdup(pw->pw_name);
 
@@ -167,6 +167,9 @@ int XrdSecgsiAuthzKey(XrdSecEntity &entity, char **key)
    memcpy(*key, skey.c_str(), skey.length());
    (*key)[skey.length()] = '\0';
    PRINT(inf_pfx << "Returning '" << skey << "' of length " << skey.length() << " as key.");
+
+   free(entity.moninfo);
+   entity.moninfo = strdup(skey.c_str());
    return skey.length() + 1;
 }
 
