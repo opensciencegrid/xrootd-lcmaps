@@ -320,6 +320,8 @@ public:
                 return -1;
             }
 
+            free(entity.moninfo);
+            entity.moninfo = strdup(key.c_str());
             free(entity.name);
             entity.name = strdup(pw->pw_name);
             mcache.try_put(key, entity);
@@ -346,6 +348,8 @@ public:
 
             sk_X509_free(full_stack);
             X509_free(peer_certificate);
+            free(entity.moninfo);
+            entity.moninfo = strdup(key.c_str());
             mcache.try_put(key, entity);
         }
         return 0;
