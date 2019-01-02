@@ -17,6 +17,13 @@ BuildRequires: lcmaps
 BuildRequires: cmake
 BuildRequires: voms-devel
 
+# For C++11 compatibility, inspired by frontier-squid:
+# http://svnweb.cern.ch/world/wsvn/frontier/rpms/frontier-squid4/tags/frontier-squid-4.3-1.1/SPECS/frontier-squid.spec
+%if 0%{?el6}
+BuildRequires: devtoolset-2-toolchain
+BuildRequires: scl-utils
+%endif
+
 # For Globus-based chain verification
 BuildRequires: globus-gsi-credential-devel
 BuildRequires: globus-gsi-cert-utils-devel
@@ -36,13 +43,16 @@ Requires: xrootd-server >= 1:4.6.1
 %build
 
 %if 0%{?el6}
-echo "*** This version does not build on EL 6 ***"
-exit 1
+scl enable devtoolset-2 '
 %endif
 
 #cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
 %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
 make VERBOSE=1 %{?_smp_mflags}
+
+%if 0%{?el6}
+'
+%endif
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
