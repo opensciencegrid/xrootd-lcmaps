@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.5.1
+Version: 1.6.0
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -16,6 +16,13 @@ BuildRequires: lcmaps-interface
 BuildRequires: lcmaps
 BuildRequires: cmake
 BuildRequires: voms-devel
+
+# For C++11 compatibility, inspired by frontier-squid:
+# http://svnweb.cern.ch/world/wsvn/frontier/rpms/frontier-squid4/tags/frontier-squid-4.3-1.1/SPECS/frontier-squid.spec
+%if 0%{?el6}
+BuildRequires: devtoolset-2-toolchain
+BuildRequires: scl-utils
+%endif
 
 # For Globus-based chain verification
 BuildRequires: globus-gsi-credential-devel
@@ -36,13 +43,16 @@ Requires: xrootd-server >= 1:4.6.1
 %build
 
 %if 0%{?el6}
-echo "*** This version does not build on EL 6 ***"
-exit 1
+scl enable devtoolset-2 '
 %endif
 
 #cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
 %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
 make VERBOSE=1 %{?_smp_mflags}
+
+%if 0%{?el6}
+'
+%endif
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
@@ -57,6 +67,12 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
+* Wed Jan 01 2019 Brian Lin <blin@cs.wisc.edu> - 1.6.0-1
+- Add EL6 support
+
+* Wed Jan 01 2019 Brian Lin <blin@cs.wisc.edu> - 1.5.2-1
+- Unify XRootD/HTTP monitoring info by copying the DN and VOMS attributes into the info field
+
 * Fri Dec 21 2018 Brian Bockelman <bbockelm@cse.unl.edu> - 1.5.1-1
 - As specified, skip callout for HTTP
 
