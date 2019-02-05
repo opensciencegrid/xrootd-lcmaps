@@ -4,6 +4,7 @@
 #include <getopt.h>
 
 #include <iostream>
+#include <sstream>
 #include <mutex>
 
 extern "C" {
@@ -16,8 +17,11 @@ int g_no_authz = 0;
 static const char plugin_name [] = "XrdSecgsiAuthz";
 static const char default_db  [] = "/etc/lcmaps.db";
 static const char default_policy_name [] = "xrootd_policy";
+static const char default_log_level [] = "3";
 
 #define PRINT(y)    std::cerr << y << "\n";
+
+namespace {
 
 int XrdSecgsiAuthzUsage(int rc)
 {
@@ -27,15 +31,29 @@ int XrdSecgsiAuthzUsage(int rc)
    return rc;
 }
 
+int UsageNew(int rc)
+{
+    std::cerr << "Usage: Provide zero-or-more comma-separated configuration directives." << std::endl
+              << "      lcmapscfg=<filename>   : Location of the lcmaps configuration file (default: " << default_db << ")" << std::endl
+              << "      loglevel=<level>       : LCMAPS log level (default: 3)" << std::endl
+              << "      no-authz               : Skip LCMAPS callout" << std::endl
+              << "      policy=<lcmaps_policy> : LCMAPS policy to use (default: " << default_policy_name << ")" << std::endl
+              << "Example: lcmapscfg=/etc/xrootd/lcmaps.cfg,policy=authorize_only" << std::endl;
+    return rc;
+}
+
+}
+
+
 int XrdSecgsiAuthzConfig(const char *cfg)
 {
    static const char err_pfx[] = "ERROR in xrootd-lcmaps config: ";
    static const char inf_pfx[] = "INFO in xrootd-lcmaps config: ";
 
    // Return 0 on success, -1 otherwise
-   const char *cfg_file  = default_db;
-   const char *policy_name = default_policy_name;
-   char *log_level = 0;
+   std::string cfg_file  = default_db;
+   std::string policy_name = default_policy_name;
+   std::string log_level;
 
    // Reload LCMAPS with 
    if (dlopen("liblcmaps.so", RTLD_LAZY|RTLD_GLOBAL) == 0) {
@@ -47,7 +65,7 @@ int XrdSecgsiAuthzConfig(const char *cfg)
    int argc = 0;
 
    // Convert the input string into the typical argc/argv pair
-   if (cfg) {
+   if (cfg && cfg[0] == '-') {
       char * cfg_copy = strdup(cfg);
       char * token = 0;
       while ((token = strsep(&cfg_copy, ",")) != 0) {
@@ -108,17 +126,45 @@ int XrdSecgsiAuthzConfig(const char *cfg)
          }
       }
       if (invalid_arg) {return -1;}
+   } else if (cfg) {
+      // In this case, tokenize according to the new rules
+      std::stringstream ss(cfg);
+      std::string item;
+      while (std::getline(ss, item, ',')) {
+          auto offset = item.find("=");
+          if (offset == std::string::npos) {
+              // Flags
+              if (item == "no-authz") {
+                  g_no_authz = 1;
+              } else {
+                  std::cerr << "Unknown configuration directive: " << item << std::endl;
+                  return UsageNew(-1);
+              }
+          } else {
+              auto key = item.substr(0, offset);
+              auto value = item.substr(offset+1);
+              if (key == "lcmapscfg") {
+                  cfg_file = value;
+                  PRINT(inf_pfx << "XrdLcmaps: Setting LCMAPS config file to " << cfg_file << ".");
+              } else if (key == "policy") {
+                  PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
+                  policy_name = value;
+              } else if (key == "loglevel") {
+                  log_level = value;
+                  PRINT(inf_pfx << "XrdLcmaps: Setting LCMAPS log level to " << log_level << ".");
+              } else {
+                  std::cerr << "Unknown configuration directive: " << item << std::endl;
+                  return UsageNew(-1);
+              }
+          }
+      }
    }
 
-   setenv("LCMAPS_DB_FILE", cfg_file, 1);
-   setenv("LCMAPS_POLICY_NAME", policy_name, 1);
+   setenv("LCMAPS_DB_FILE", cfg_file.c_str(), 0);
+   setenv("LCMAPS_POLICY_NAME", policy_name.c_str(), 0);
 
    setenv("LCMAPS_VERIFY_TYPE", "uid_pgid", 1);
-   if (log_level == 0) {
-      setenv("LCMAPS_DEBUG_LEVEL", "3", 0);
-   } else {
-      setenv("LCMAPS_DEBUG_LEVEL", log_level, 0);
-   }
+   setenv("LCMAPS_DEBUG_LEVEL", log_level.c_str(), 0);
 
    if (!g_no_authz) {
       FILE *fp = fdopen(2, "w");
