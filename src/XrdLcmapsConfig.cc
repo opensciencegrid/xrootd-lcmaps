@@ -21,8 +21,9 @@ static const char default_policy_name [] = "xrootd_policy";
 
 int XrdSecgsiAuthzUsage(int rc)
 {
-   std::cerr << "Usage: --lcmapscfg <filename> [--loglevel <level>]" << std::endl
-             << "    --loglevel   passed on as LCMAPS_DEBUG_LEVEL" << std::endl;
+   std::cerr << "Usage: [--lcmapscfg <filename>] [--loglevel <level>] [--no-authz] [--policy <lcmaps_policy>]" << std::endl
+             << "    --loglevel   passed on as LCMAPS_DEBUG_LEVEL" << std::endl
+             << "    --policy     passed on as LCMAPS_POLICY_NAME" << std::endl;
    return rc;
 }
 
@@ -61,10 +62,6 @@ int XrdSecgsiAuthzConfig(const char *cfg)
          argv[argc++] = strdup(token);
       }
       free(cfg_copy);
-
-      if (argc < 3) {
-         return XrdSecgsiAuthzUsage(-1);
-      }
 
       // Use getopt to parse the appropriate options
       char c;
