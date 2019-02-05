@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.6.0
+Version: 1.7.0
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -67,10 +67,14 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 
 %changelog
-* Wed Jan 01 2019 Brian Lin <blin@cs.wisc.edu> - 1.6.0-1
+* Tue Feb 05 2019 Brian Bockelman <brian.bockelman@cern.ch> - 1.7.0-1
+- Add key=value config syntax.
+- Prior config syntax no longer requires a minimum of three arguments.
+
+* Wed Jan 02 2019 Brian Lin <blin@cs.wisc.edu> - 1.6.0-1
 - Add EL6 support
 
-* Wed Jan 01 2019 Brian Lin <blin@cs.wisc.edu> - 1.5.2-1
+* Wed Jan 02 2019 Brian Lin <blin@cs.wisc.edu> - 1.5.2-1
 - Unify XRootD/HTTP monitoring info by copying the DN and VOMS attributes into the info field
 
 * Fri Dec 21 2018 Brian Bockelman <bbockelm@cse.unl.edu> - 1.5.1-1
