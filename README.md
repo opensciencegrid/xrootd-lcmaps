@@ -37,9 +37,12 @@ The following lines in the XRootD configuration file will enable the LCMAPS plug
 
 ```
 sec.protocol /usr/lib64 gsi -certdir:/etc/grid-security/certificates -cert:/etc/grid-security/xrd/xrdcert.pem \
-                            -key:/etc/grid-security/xrd/xrdkey.pem -crl:1 \
-                            -authzfun:libXrdLcmaps.so -authzfunparms:--lcmapscfg,/etc/lcmaps.db,--loglevel,0 \
-                            -gmapopt:10 -gmapto:0
+                            -key:/etc/grid-security/xrd/xrdkey.pem \
+                            -crl:1 \
+                            -authzfun:libXrdLcmaps.so \
+                            -authzfunparms:--lcmapscfg=/etc/lcmaps.db,--loglevel=0 \
+                            -gmapopt:10 \
+                            -gmapto:0
 
 http.secxtractor /usr/lib64/libXrdLcmaps.so
 ```
