@@ -1,7 +1,7 @@
 
 Name: xrootd-lcmaps
 Version: 1.7.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
@@ -31,7 +31,7 @@ BuildRequires: globus-common-devel
 BuildRequires: globus-gsi-sysconfig-devel
 BuildRequires: globus-gsi-callback-devel
 
-Requires: xrootd-server >= 1:4.6.1
+Requires: xrootd-server >= 1:4.9.0
 
 %description
 %{summary}
@@ -65,8 +65,13 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %{_libdir}/libXrdLcmaps.so.0
 %{_libdir}/libXrdLcmaps.so.0.0.2
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
+%config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
+* Tue Jul 09 2019 Diego Davila <didavila@ucsd.edu> - 1.7.0-2
+- Adding directory config.d and file config.d/40-xrootd-lcmaps.cfg (SOFTWARE-3534)
+- Changing xrootd requirement to 4.9.0
+
 * Tue Feb 05 2019 Brian Bockelman <brian.bockelman@cern.ch> - 1.7.0-1
 - Add key=value config syntax.
 - Prior config syntax no longer requires a minimum of three arguments.
