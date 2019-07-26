@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.7.1
+Version: 1.7.2
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -68,6 +68,10 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
+* Fri Jul 26 2019 Diego Davila <didavila@ucsd.edu> - 1.7.2-1
+- Adding 40-xrootd-lcmaps.cfg to CMakeLists.txt
+- Adding .travis.yml
+
 * Fri Jul 26 2019 Diego Davila <didavila@ucsd.edu> - 1.7.1-1
 - Adding directory config.d and file config.d/40-xrootd-lcmaps.cfg (SOFTWARE-3534)
 - Changing xrootd requirement to 4.9.0
