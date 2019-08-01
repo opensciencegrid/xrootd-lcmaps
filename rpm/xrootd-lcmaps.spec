@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.7.2
+Version: 1.7.3
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -68,6 +68,9 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
+* Fri Aug 01 2019 Brian Lin <blin@cs.wisc.edu> - 1.7.3-1
+- Add support for unauthenticated Stash Caches and Origins
+
 * Fri Jul 26 2019 Diego Davila <didavila@ucsd.edu> - 1.7.2-1
 - Adding 40-xrootd-lcmaps.cfg to CMakeLists.txt
 - Adding .travis.yml
