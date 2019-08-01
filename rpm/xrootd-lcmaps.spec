@@ -68,8 +68,10 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
-* Fri Aug 01 2019 Brian Lin <blin@cs.wisc.edu> - 1.7.3-1
+* Thu Aug 01 2019 Brian Lin <blin@cs.wisc.edu> - 1.7.3-1
 - Add support for unauthenticated Stash Caches and Origins
+- Fix authzfunparms syntax
+- Use the canonical LCMAPS config location in the default config
 
 * Fri Jul 26 2019 Diego Davila <didavila@ucsd.edu> - 1.7.2-1
 - Adding 40-xrootd-lcmaps.cfg to CMakeLists.txt
