@@ -40,7 +40,7 @@ sec.protocol /usr/lib64 gsi -certdir:/etc/grid-security/certificates -cert:/etc/
                             -key:/etc/grid-security/xrd/xrdkey.pem \
                             -crl:1 \
                             -authzfun:libXrdLcmaps.so \
-                            -authzfunparms:--lcmapscfg=/etc/lcmaps.db,--loglevel=0 \
+                            -authzfunparms:lcmapscfg=/etc/lcmaps.db,loglevel=0 \
                             -gmapopt:10 \
                             -gmapto:0
 
