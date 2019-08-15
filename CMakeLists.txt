@@ -42,6 +42,7 @@ install(
 
 install(
   FILES
+  ${CMAKE_SOURCE_DIR}/configs/config.d/10-xrootd-lcmaps.cfg
   ${CMAKE_SOURCE_DIR}/configs/config.d/40-xrootd-lcmaps.cfg
   DESTINATION ${SYSCONF_INSTALL_DIR}/xrootd/config.d
   PERMISSIONS

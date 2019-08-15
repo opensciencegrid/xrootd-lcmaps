@@ -65,6 +65,7 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %{_libdir}/libXrdLcmaps.so.0
 %{_libdir}/libXrdLcmaps.so.0.0.2
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
+%config(noreplace) %{_sysconfdir}/xrootd/config.d/10-xrootd-lcmaps.cfg
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
