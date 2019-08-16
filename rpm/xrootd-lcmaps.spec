@@ -1,6 +1,6 @@
 
 Name: xrootd-lcmaps
-Version: 1.7.3
+Version: 1.7.4
 Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
@@ -69,6 +69,9 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
+* Fri Aug 16 2019 Brian Lin <blin@cs.wisc.edu> - 1.7.4-1
+- Make default configuration opt-in (SOFTWARE-3534)
+
 * Thu Aug 01 2019 Brian Lin <blin@cs.wisc.edu> - 1.7.3-1
 - Add support for unauthenticated Stash Caches and Origins
 - Fix authzfunparms syntax
