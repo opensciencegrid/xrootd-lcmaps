@@ -1,7 +1,7 @@
 
 Name: xrootd-lcmaps
 Version: 1.7.4
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
@@ -31,7 +31,7 @@ BuildRequires: globus-common-devel
 BuildRequires: globus-gsi-sysconfig-devel
 BuildRequires: globus-gsi-callback-devel
 
-Requires: xrootd-server >= 1:4.9.0
+Requires: xrootd-server >= 1:4.10.0
 
 %description
 %{summary}
@@ -69,6 +69,9 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
+* Tue Aug 27 2019 Brian Lin <blin@cs.wisc.edu> - 1.7.4-2
+- Require XRootD 4.10.0 due to incompatibility with 4.9.1
+
 * Fri Aug 16 2019 Brian Lin <blin@cs.wisc.edu> - 1.7.4-1
 - Make default configuration opt-in (SOFTWARE-3534)
 
