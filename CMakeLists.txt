@@ -26,7 +26,7 @@ set (INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${GLOBUS_INCLUDE_DIRS})
 include_directories( "${PROJECT_SOURCE_DIR}" "${XROOTD_INCLUDES}" "${LCMAPS_INCLUDES}" "${VOMS_INCLUDES}")
 
 add_library(XrdLcmaps MODULE src/XrdLcmaps.cc src/XrdHttpLcmaps.cc src/XrdLcmapsConfig.cc src/XrdLcmapsKey.cc src/GlobusSupport.cc src/GlobusError.cc)
-target_link_libraries(XrdLcmaps ${XROOTD_SECGSI} ${XROOTD_CRYPTOSSL} ${LCMAPS_LIB} ${DL_LIB} ${VOMS_LIB})
+target_link_libraries(XrdLcmaps ${LCMAPS_LIB} ${DL_LIB} ${VOMS_LIB})
 set_target_properties(XrdLcmaps PROPERTIES LINK_FLAGS "-Wl,--version-script=${PROJECT_SOURCE_DIR}/configs/export-symbols")
 
 if (NOT DEFINED LIB_INSTALL_DIR)
