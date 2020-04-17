@@ -1,7 +1,7 @@
 
 Name: xrootd-lcmaps
 Version: 1.7.5
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
@@ -74,6 +74,9 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
+* Fri Apr 17 2020 Diego Davila <didavila@ucad.edu> - 1.7.5-2
+- Changing config to make xrootd to find the proper libXrdSec shared library
+
 * Fri Jan 10 2020 Diego Davila <didavila@ucad.edu> - 1.7.5-1
 - Allow lcmaps policy to be read from config file for http
 
