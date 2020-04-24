@@ -173,6 +173,12 @@ int XrdSecgsiAuthzConfig(const char *cfg)
          return -1;
       }
    }
+   else {
+     PRINT(inf_pfx << "WARNING XrdLcmaps: Setting LCMAPS config file" << cfg_file << " won't be used no-authz option set.");
+     PRINT(inf_pfx << "WARNING: XrdLcmaps: Setting LCMAPS policy name " << policy_name << " won't be used no-authz option set.");
+     PRINT(inf_pfx << "WARNING: XrdLcmaps: Setting LCMAPS log level " << log_level << " won't be used no-authz option set.");
+   }
+
 
    if (argv != NULL) {
       for (int i=0; i<argc+1; i++) {
