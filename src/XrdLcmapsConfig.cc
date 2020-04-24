@@ -147,8 +147,8 @@ int XrdSecgsiAuthzConfig(const char *cfg)
                   cfg_file = value;
                   PRINT(inf_pfx << "XrdLcmaps: Setting LCMAPS config file to " << cfg_file << ".");
               } else if (key == "policy") {
-                  PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
                   policy_name = value;
+                  PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
               } else if (key == "loglevel") {
                   log_level = value;
                   PRINT(inf_pfx << "XrdLcmaps: Setting LCMAPS log level to " << log_level << ".");
