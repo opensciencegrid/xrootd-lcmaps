@@ -49,6 +49,7 @@ int XrdSecgsiAuthzConfig(const char *cfg)
 {
    static const char err_pfx[] = "ERROR in xrootd-lcmaps config: ";
    static const char inf_pfx[] = "INFO in xrootd-lcmaps config: ";
+   static const char warn_pfx[] = "WARNING in xrootd-lcmaps config: ";
 
    // Return 0 on success, -1 otherwise
    std::string cfg_file  = default_db;
@@ -174,9 +175,9 @@ int XrdSecgsiAuthzConfig(const char *cfg)
       }
    }
    else {
-     PRINT(warn_pfx << "XrdLcmaps: Setting LCMAPS config file" << cfg_file << " won't be used, no-authz option set.");
-     PRINT(warn_pfx << "XrdLcmaps: Setting LCMAPS policy name " << policy_name << " won't be used, no-authz option set.");
-     PRINT(warn_pfx << "XrdLcmaps: Setting LCMAPS log level " << log_level << " won't be used, no-authz option set.");
+     PRINT(warn_pfx << "Setting LCMAPS config file" << cfg_file << " won't be used no-authz option set.");
+     PRINT(warn_pfx << "Setting LCMAPS policy name " << policy_name << " won't be used no-authz option set.");
+     PRINT(warn_pfx << "Setting LCMAPS log level " << log_level << " won't be used no-authz option set.");
    }
 
 
