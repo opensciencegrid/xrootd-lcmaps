@@ -147,12 +147,21 @@ int XrdSecgsiAuthzConfig(const char *cfg)
               if (key == "lcmapscfg") {
                   cfg_file = value;
                   PRINT(inf_pfx << "XrdLcmaps: Setting LCMAPS config file to " << cfg_file << ".");
+                  if (g_no_authz) {
+		    PRINT(warn_pfx << "Setting LCMAPS config file" << cfg_file << " won't be used, no-authz option is set.");
+		  }
               } else if (key == "policy") {
                   policy_name = value;
                   PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
+                  if (g_no_authz) {
+		    PRINT(warn_pfx << "Setting LCMAPS policy name " << policy_name << " won't be used, no-authz option is set.");
+                  }
               } else if (key == "loglevel") {
                   log_level = value;
                   PRINT(inf_pfx << "XrdLcmaps: Setting LCMAPS log level to " << log_level << ".");
+		  if (g_no_authz) {
+		    PRINT(warn_pfx << "Setting LCMAPS log level " << log_level << " won't be used, no-authz option is set.");
+                  }
               } else {
                   std::cerr << "Unknown configuration directive: " << item << std::endl;
                   return UsageNew(-1);
@@ -175,9 +184,7 @@ int XrdSecgsiAuthzConfig(const char *cfg)
       }
    }
    else {
-     PRINT(warn_pfx << "Setting LCMAPS config file" << cfg_file << " won't be used, no-authz option is set.");
-     PRINT(warn_pfx << "Setting LCMAPS policy name " << policy_name << " won't be used, no-authz option is set.");
-     PRINT(warn_pfx << "Setting LCMAPS log level " << log_level << " won't be used, no-authz option is set.");
+     PRINT(inf_pfx << " LCMAPS: no-authz option is set; LCMAPS will not be invoked");
    }
 
 
