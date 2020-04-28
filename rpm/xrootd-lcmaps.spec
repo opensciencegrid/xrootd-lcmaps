@@ -11,11 +11,11 @@ URL: https://github.com/opensciencegrid/xrootd-lcmaps
 # git archive v${VERSION} --prefix=xrootd-lcmaps-$VERSION/ | gzip -7 > ~/rpmbuild/SOURCES/xrootd-lcmaps-$VERSION.tar.gz
 Source0: %{name}-%{version}.tar.gz
 
-%define xrootd_current 4.11
+%define xrootd_current 4.12
 %define xrootd_next %(echo %xrootd_current | awk '{print $1,$2+1}' FS=. OFS=.)
 
-BuildRequires: xrootd-server-devel >= 1:%{xrootd_current}.0-1
-BuildRequires: xrootd-server-devel <  1:%{xrootd_next}.0-1
+BuildRequires: xrootd-server-devel >= 1:%{xrootd_current}.0-0
+BuildRequires: xrootd-server-devel <  1:%{xrootd_next}.0-0
 BuildRequires: lcmaps-interface
 BuildRequires: lcmaps
 BuildRequires: cmake
@@ -35,8 +35,8 @@ BuildRequires: globus-common-devel
 BuildRequires: globus-gsi-sysconfig-devel
 BuildRequires: globus-gsi-callback-devel
 
-Requires: xrootd-server >= 1:%{xrootd_current}.0-1
-Requires: xrootd-server <  1:%{xrootd_next}.0-1
+Requires: xrootd-server >= 1:%{xrootd_current}.0-0
+Requires: xrootd-server <  1:%{xrootd_next}.0-0
 
 %description
 %{summary}
