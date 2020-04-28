@@ -74,10 +74,12 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
-* Fri Apr 17 2020 Diego Davila <didavila@ucad.edu> - 1.7.6-1
+* Mon Apr 28 2020 Edgar Fajardo <emfajard@ucsd.edu> - 1.7.6-1
+- Adding some warning for when no-authz is used
+- Builing against Xrootd 4.12 (SOFTWARE-4063)
 - Changing config to make xrootd to find the proper libXrdSec shared library
 
-* Fri Jan 10 2020 Diego Davila <didavila@ucad.edu> - 1.7.5-1
+* Fri Jan 10 2020 Diego Davila <didavila@ucsd.edu> - 1.7.5-1
 - Allow lcmaps policy to be read from config file for http
 
 * Mon Oct 21 2019 Carl Edquist <edquist@cs.wisc.edu> - 1.7.4-4
