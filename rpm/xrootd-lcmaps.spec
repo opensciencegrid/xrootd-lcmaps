@@ -77,6 +77,7 @@ make install DESTDIR=$RPM_BUILD_ROOT
 * Mon Apr 28 2020 Edgar Fajardo <emfajard@ucsd.edu> - 1.7.6-1
 - Adding some warning for when no-authz is used
 - Builing against Xrootd 4.12 (SOFTWARE-4063)
+- Changing config to make xrootd to find the proper libXrdSec shared library
 
 * Fri Jan 10 2020 Diego Davila <didavila@ucsd.edu> - 1.7.5-1
 - Allow lcmaps policy to be read from config file for http
