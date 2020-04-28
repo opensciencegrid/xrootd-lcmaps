@@ -161,7 +161,7 @@ int XrdSecgsiAuthzConfig(const char *cfg)
               } else if (key == "loglevel") {
                   log_level = value;
                   if (g_no_authz) {
-		      PRINT(warn_pfx << "LCMAPS log level " << log_level << " won't be used: no-authz option is set.");
+                      PRINT(warn_pfx << "LCMAPS log level " << log_level << " won't be used: no-authz option is set.");
                   } else {
                       PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
                   }
