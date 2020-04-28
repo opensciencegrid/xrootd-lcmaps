@@ -147,27 +147,27 @@ int XrdSecgsiAuthzConfig(const char *cfg)
               if (key == "lcmapscfg") {
                   cfg_file = value;
                   if (g_no_authz) {
-		    PRINT(warn_pfx << "Setting LCMAPS config file" << cfg_file << " won't be used, no-authz option is set.");
+                      PRINT(warn_pfx << "Setting LCMAPS config file" << cfg_file << " won't be used, no-authz option is set.");
 		  }
-		  else{
-		    PRINT(inf_pfx << "XrdLcmaps: Setting LCMAPS config file to " << cfg_file << ".");
+		  else {
+                      PRINT(inf_pfx << "XrdLcmaps: Setting LCMAPS config file to " << cfg_file << ".");
 		  }
 
               } else if (key == "policy") {
                   policy_name = value;
                   if (g_no_authz) {
-		    PRINT(warn_pfx << "Setting LCMAPS policy name " << policy_name << " won't be used, no-authz option is set.");
+                      PRINT(warn_pfx << "Setting LCMAPS policy name " << policy_name << " won't be used, no-authz option is set.");
                   }
 		  else{
-		    PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
+                      PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
 		  }
               } else if (key == "loglevel") {
                   log_level = value;
 		  if (g_no_authz) {
-		    PRINT(warn_pfx << "Setting LCMAPS log level " << log_level << " won't be used, no-authz option is set.");
+		      PRINT(warn_pfx << "Setting LCMAPS log level " << log_level << " won't be used, no-authz option is set.");
                   }
 		  else{
-		    PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
+                      PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
 		  }
               } else {
                   std::cerr << "Unknown configuration directive: " << item << std::endl;
@@ -191,7 +191,7 @@ int XrdSecgsiAuthzConfig(const char *cfg)
       }
    }
    else {
-     PRINT(inf_pfx << " LCMAPS: no-authz option is set; LCMAPS will not be invoked");
+      PRINT(inf_pfx << " LCMAPS: no-authz option is set; LCMAPS will not be invoked");
    }
 
 
