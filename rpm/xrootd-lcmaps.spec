@@ -1,7 +1,7 @@
 
 Name: xrootd-lcmaps
 Version: 1.7.7
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
@@ -74,7 +74,7 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
-* Tue Apr 28 2020 Edgar Fajardo <emfajard@ucsd.edu> - 1.7.7-1
+* Tue Apr 28 2020 Edgar Fajardo <emfajard@ucsd.edu> - 1.7.7-2
 - Adding some warning for when no-authz is used
 - Builing against Xrootd 4.12 (SOFTWARE-4063)
 
