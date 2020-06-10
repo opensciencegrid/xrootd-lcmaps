@@ -1,7 +1,7 @@
 
 Name: xrootd-lcmaps
 Version: 1.7.7
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
@@ -66,14 +66,18 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 # We keep the .so here (and not in a -devel subpackage) because it is actually
 # a shared library.
-%{_libdir}/libXrdLcmaps.so
-%{_libdir}/libXrdLcmaps.so.0
-%{_libdir}/libXrdLcmaps.so.0.0.2
+%{_libdir}/libXrdLcmaps-*.so
+%{_libdir}/libXrdLcmaps-*.so.0
+%{_libdir}/libXrdLcmaps-*.so.0.0.2
 %config(noreplace) %{_sysconfdir}/xrootd/lcmaps.cfg
 %config(noreplace) %{_sysconfdir}/xrootd/config.d/10-xrootd-lcmaps.cfg
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
+* Wed Jun 10 2020 Diego Davila <didavila@ucsd.edu> - 1.7.7-3
+- Adding XrootD major version to the shared file name
+- building against XrootD-4.12.2 (software-4093)
+
 * Tue Apr 28 2020 Edgar Fajardo <emfajard@ucsd.edu> - 1.7.7-2
 - Adding some warning for when no-authz is used
 - Builing against Xrootd 4.12 (SOFTWARE-4063)
