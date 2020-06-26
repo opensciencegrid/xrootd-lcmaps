@@ -8,6 +8,12 @@ find_package( Xrootd REQUIRED )
 find_package( Lcmaps REQUIRED )
 find_package( Voms   REQUIRED )
 
+if(NOT XROOTD_PLUGIN_VERSION)
+  find_program(XROOTD_CONFIG_EXECUTABLE xrootd-config)
+  exec_program(${XROOTD_CONFIG_EXECUTABLE} ARGS "--plugin-version" OUTPUT_VARIABLE XROOTD_PLUGIN_VERSION RETURN_VALUE RETVAR)
+  set(XROOTD_PLUGIN_VERSION ${XROOTD_PLUGIN_VERSION} CACHE INTERNAL "")
+endif()
+
 if( CMAKE_COMPILER_IS_GNUCXX )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -DLCMAPS_GSI_MODE=1" )
 endif()
@@ -27,7 +33,7 @@ include_directories( "${PROJECT_SOURCE_DIR}" "${XROOTD_INCLUDES}" "${LCMAPS_INCL
 
 add_library(XrdLcmaps MODULE src/XrdLcmaps.cc src/XrdHttpLcmaps.cc src/XrdLcmapsConfig.cc src/XrdLcmapsKey.cc src/GlobusSupport.cc src/GlobusError.cc)
 target_link_libraries(XrdLcmaps ${LCMAPS_LIB} ${DL_LIB} ${VOMS_LIB})
-set_target_properties(XrdLcmaps PROPERTIES LINK_FLAGS "-Wl,--version-script=${PROJECT_SOURCE_DIR}/configs/export-symbols")
+set_target_properties(XrdLcmaps PROPERTIES OUTPUT_NAME "XrdLcmaps-${XROOTD_PLUGIN_VERSION}" LINK_FLAGS "-Wl,--version-script=${PROJECT_SOURCE_DIR}/configs/export-symbols")
 
 if (NOT DEFINED LIB_INSTALL_DIR)
   SET(LIB_INSTALL_DIR "lib")
