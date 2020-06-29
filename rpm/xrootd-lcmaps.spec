@@ -1,7 +1,7 @@
 
 Name: xrootd-lcmaps
-Version: 1.7.7
-Release: 3%{?dist}
+Version: 1.7.8
+Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
@@ -51,8 +51,12 @@ Requires: xrootd-server <  1:%{xrootd_next}.0-0
 scl enable devtoolset-2 '
 %endif
 
-#cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+%if 0%{?rhel} >= 8
+%cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DOPENSSL=1 .
+%else
 %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+%fi
+
 make VERBOSE=1 %{?_smp_mflags}
 
 %if 0%{?el6}
@@ -74,6 +78,9 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
+* Mon Jun 29 2020 Edgar Fajardo <emfajard@ucsd.edu> 1.7.8-1
+- Added support for EL8
+
 * Wed Jun 10 2020 Diego Davila <didavila@ucsd.edu> - 1.7.7-3
 - Adding XrootD major version to the shared file name
 - building against XrootD-4.12.2 (software-4093)
