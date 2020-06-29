@@ -55,7 +55,7 @@ scl enable devtoolset-2 '
 %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DOPENSSL=1 .
 %else
 %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
-%fi
+%endif
 
 make VERBOSE=1 %{?_smp_mflags}
 
