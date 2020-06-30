@@ -1,4 +1,3 @@
-
 Name: xrootd-lcmaps
 Version: 1.7.8
 Release: 1%{?dist}
@@ -51,6 +50,7 @@ Requires: xrootd-server <  1:%{xrootd_next_major}.0.0-0
 scl enable devtoolset-2 '
 %endif
 
+#cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo .
 %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
 
 make VERBOSE=1 %{?_smp_mflags}
