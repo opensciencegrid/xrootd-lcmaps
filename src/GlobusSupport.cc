@@ -312,7 +312,7 @@ class CertStore {
         throw result;
     }
     X509_STORE_set_verify_cb_func(m_cert_store,
-                    globus_gsi_callback_create_proxy_callback);
+                                  globus_gsi_callback_create_proxy_callback);
     X509_STORE_set_depth(m_cert_store, GLOBUS_GSI_CALLBACK_VERIFY_DEPTH);
     X509_STORE_set_flags(m_cert_store, X509_V_FLAG_ALLOW_PROXY_CERTS);
 
