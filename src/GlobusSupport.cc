@@ -317,9 +317,9 @@ class CertStore {
     X509_STORE_set_flags(m_cert_store, X509_V_FLAG_ALLOW_PROXY_CERTS);
     #ifdef _OPENSSL111
         X509_STORE_set_check_issued(m_cert_store, globus_gsi_callback_check_issued);
-   #else
+    #else
 	m_cert_store->check_issued = globus_gsi_callback_check_issued;
-   #endif
+    #endif
 
     m_expire_time = monotonic_time() + m_expiry_secs;
 
