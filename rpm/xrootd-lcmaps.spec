@@ -74,7 +74,6 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
-
 * Mon Jun 29 2020 Edgar Fajardo <emfajard@ucsd.edu> 1.7.8-1
 - Added support for EL8
 
