@@ -1,7 +1,7 @@
 
 Name: xrootd-lcmaps
-Version: 1.7.7
-Release: 5%{?dist}
+Version: 1.7.8
+Release: 1%{?dist}
 Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
@@ -74,6 +74,9 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
+* Mon Jun 29 2020 Edgar Fajardo <emfajard@ucsd.edu> 1.7.8-1
+- Added support for EL8
+
 * Fri Jun 26 2020 Diego Davila <didavila@ucsd.edu> - 1.7.7-5
 - updating XRootD requirements to only the major version (SOFTWARE-4137)
 
