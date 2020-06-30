@@ -315,7 +315,6 @@ class CertStore {
                                   globus_gsi_callback_create_proxy_callback);
     X509_STORE_set_depth(m_cert_store, GLOBUS_GSI_CALLBACK_VERIFY_DEPTH);
     X509_STORE_set_flags(m_cert_store, X509_V_FLAG_ALLOW_PROXY_CERTS);
-
     #if OPENSSL_VERSION_NUMBER >= 0x010101000
         X509_STORE_set_check_issued(m_cert_store, globus_gsi_callback_check_issued);
     #else
