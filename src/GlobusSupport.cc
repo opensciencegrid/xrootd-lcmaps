@@ -316,10 +316,10 @@ class CertStore {
     X509_STORE_set_depth(m_cert_store, GLOBUS_GSI_CALLBACK_VERIFY_DEPTH);
     X509_STORE_set_flags(m_cert_store, X509_V_FLAG_ALLOW_PROXY_CERTS);
 
-    #if OPENSSL_VERSION_NUMBER >= 0x1110000
-        X509_STORE_set_check_issued(m_cert_store, globus_gsi_callback_check_issued);
+    #if OPENSSL_VERSION_NUMBER < 0x1110000
+        m_cert_store->check_issued = globus_gsi_callback_check_issued;
     #else
-	m_cert_store->check_issued = globus_gsi_callback_check_issued;
+        X509_STORE_set_check_issued(m_cert_store, globus_gsi_callback_check_issued);
     #endif
 
     m_expire_time = monotonic_time() + m_expiry_secs;
