@@ -51,11 +51,7 @@ Requires: xrootd-server <  1:%{xrootd_next_major}.0.0-0
 scl enable devtoolset-2 '
 %endif
 
-%if 0%{?rhel} >= 8
-%cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DOPENSSL111=1 .
-%else
 %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
-%endif
 
 make VERBOSE=1 %{?_smp_mflags}
 
