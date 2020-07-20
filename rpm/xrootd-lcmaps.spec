@@ -1,7 +1,7 @@
 
 Name: xrootd-lcmaps
 Version: 1.7.8
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: LCMAPS plugin for xrootd
 
 Group: System Environment/Daemons
@@ -12,10 +12,11 @@ URL: https://github.com/opensciencegrid/xrootd-lcmaps
 Source0: %{name}-%{version}.tar.gz
 
 %define xrootd_current_major 4
+%define xrootd_current_minor 12
 %define xrootd_next_major 5
 
-BuildRequires: xrootd-server-devel >= 1:%{xrootd_current_major}.0.0-0
-BuildRequires: xrootd-server-devel <  1:%{xrootd_next_major}.0.0-0
+BuildRequires: xrootd-server-devel >= 1:%{xrootd_current_major}
+BuildRequires: xrootd-server-devel <  1:%{xrootd_next_major}
 BuildRequires: lcmaps-interface
 BuildRequires: lcmaps
 BuildRequires: cmake
@@ -35,8 +36,8 @@ BuildRequires: globus-common-devel
 BuildRequires: globus-gsi-sysconfig-devel
 BuildRequires: globus-gsi-callback-devel
 
-Requires: xrootd-server >= 1:%{xrootd_current_major}.0.0-0
-Requires: xrootd-server <  1:%{xrootd_next_major}.0.0-0
+Requires: xrootd-server >= 1:%{xrootd_current_major}.%{xrootd_current_minor}
+Requires: xrootd-server <  1:%{xrootd_next_major}.0.0-1
 
 %description
 %{summary}
@@ -76,6 +77,9 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %config %{_sysconfdir}/xrootd/config.d/40-xrootd-lcmaps.cfg
 
 %changelog
+* Tue Jul 14 2020 Diego Davila <didavila@ucsd.edu> - 1.7.8-3
+- updating XRootD adding minor version to requirements (SOFTWARE-4137)
+
 * Mon Jun 29 2020 Edgar Fajardo <emfajard@ucsd.edu> 1.7.8-2
 - Added support for EL8
 
