@@ -11,6 +11,8 @@ extern "C" {
 #include <lcmaps.h>
 }
 
+#include <voms/voms_api.h>
+
 // Disable LCMAPS completely
 int g_no_authz = 0;
 
@@ -189,6 +191,7 @@ int XrdSecgsiAuthzConfig(const char *cfg)
       PRINT(inf_pfx << " LCMAPS: no-authz option is set; LCMAPS will not be invoked");
    }
 
+   vomsdata vomsInit; // This forces libssl initialization at load time
 
    if (argv != NULL) {
       for (int i=0; i<argc+1; i++) {
