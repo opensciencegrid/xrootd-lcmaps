@@ -43,6 +43,12 @@ GetKey(X509 *cert, STACK_OF(X509) *chain, XrdSecEntity &ent)
 
     // Parse VOMS data and append that.
     struct vomsdata *voms_ptr = VOMS_Init(NULL, NULL);
+    if (voms_ptr == nullptr)
+    {
+        std::cerr << "VOMS failure: VOMS_Init() returned NULL" << std::endl;
+        return key.str();
+    }
+
     int errcode = 0;
     if (!VOMS_Retrieve(cert, chain, RECURSE_CHAIN, voms_ptr, &errcode))
     {
