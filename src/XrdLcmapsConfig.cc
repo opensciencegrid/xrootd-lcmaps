@@ -165,7 +165,7 @@ int XrdSecgsiAuthzConfig(const char *cfg)
                   if (g_no_authz) {
                       PRINT(warn_pfx << "LCMAPS log level " << log_level << " won't be used: no-authz option is set.");
                   } else {
-                      PRINT(inf_pfx << "XrdLcmaps: Using LCMAPS policy name " << policy_name << ".");
+                      PRINT(inf_pfx << "XrdLcmaps: Setting LCMAPS log level to " << log_level << ".");
                   }
               } else {
                   std::cerr << "Unknown configuration directive: " << item << std::endl;
